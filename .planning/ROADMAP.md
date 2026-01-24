@@ -74,12 +74,12 @@ Plans:
   4. Sub-agents use isolated 200K context windows (not main conversation context)
   5. Parallel execution uses Task tool with up to 7 concurrent sub-agents
   6. MCP servers do not consume more than 40% of context (Tool Search enabled)
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 04-01: Context and commit commands
-- [ ] 04-02: Output standardization and sub-agent isolation patterns
-- [ ] 04-03: MCP token budget enforcement
+- [ ] 04-01-PLAN.md - Context and commit skills with dynamic injection (Wave 1)
+- [ ] 04-02-PLAN.md - Output format template and architecture documentation (Wave 1)
+- [ ] 04-03-PLAN.md - Verification and human approval checkpoint (Wave 2)
 
 ## Progress
 
@@ -91,7 +91,7 @@ Phases execute in numeric order: 1 -> 1.1 -> 2 -> 2.1 -> 3 -> 4
 | 1. Foundation | 2/2 | Complete | 2025-01-24 |
 | 2. Core Extensions | 2/2 | Complete | 2025-01-24 |
 | 3. Advanced Extensions | 2/2 | Complete | 2026-01-24 |
-| 4. Quality & Architecture | 0/3 | Not started | - |
+| 4. Quality & Architecture | 0/3 | Planned | - |
 
 ---
 *Roadmap created: 2025-01-24*
