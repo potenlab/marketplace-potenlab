@@ -9,10 +9,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Plugin Infrastructure
 
-- [ ] **PLUG-01**: Plugin manifest exists with `/pl` namespace and valid structure
-- [ ] **PLUG-02**: `/pl:help` displays all available commands with descriptions
-- [ ] **PLUG-03**: `/pl:init` configures project with MCPs, rules, and agents in one command
-- [ ] **PLUG-04**: Team can install plugin via GitHub link
+- [x] **PLUG-01**: Plugin manifest exists with `/pl` namespace and valid structure
+- [x] **PLUG-02**: `/pl:help` displays all available commands with descriptions
+- [x] **PLUG-03**: `/pl:init` configures project with MCPs, rules, and agents in one command
+- [x] **PLUG-04**: Team can install plugin via GitHub link
 
 ### Core Extensions
 
@@ -68,10 +68,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLUG-01 | Phase 1 | Pending |
-| PLUG-02 | Phase 1 | Pending |
-| PLUG-03 | Phase 1 | Pending |
-| PLUG-04 | Phase 1 | Pending |
+| PLUG-01 | Phase 1 | Complete |
+| PLUG-02 | Phase 1 | Complete |
+| PLUG-03 | Phase 1 | Complete |
+| PLUG-04 | Phase 1 | Complete |
 | EXT-01 | Phase 2 | Pending |
 | EXT-02 | Phase 2 | Pending |
 | EXT-03 | Phase 3 | Pending |

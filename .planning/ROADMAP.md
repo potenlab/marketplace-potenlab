@@ -10,7 +10,7 @@ This roadmap delivers an internal Claude Code extension ecosystem for Potenlab. 
 - Integer phases (1, 2, 3, 4): Planned milestone work
 - Decimal phases (1.1, 2.1): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: Foundation** - Plugin manifest, `/pl:help`, `/pl:init`, and GitHub installation
+- [x] **Phase 1: Foundation** - Plugin manifest, `/pl:help`, `/pl:init`, and GitHub installation
 - [ ] **Phase 2: Core Extensions** - `/pl:review` and `/pl:refactor` skills with tool restrictions
 - [ ] **Phase 3: Advanced Extensions** - `/pl:research` (parallel sub-agents) and `/pl:slice` (Figma MCP)
 - [ ] **Phase 4: Quality & Architecture** - Context management, output standards, commit workflow, and sub-agent patterns
@@ -29,8 +29,8 @@ This roadmap delivers an internal Claude Code extension ecosystem for Potenlab. 
 **Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 01-01-PLAN.md - Plugin manifest, marketplace catalog, README, and CHANGELOG (Wave 1)
-- [ ] 01-02-PLAN.md - Help and init skills with installation verification (Wave 2)
+- [x] 01-01-PLAN.md - Plugin manifest, marketplace catalog, README, and CHANGELOG (Wave 1)
+- [x] 01-02-PLAN.md - Help and init commands with installation verification (Wave 2)
 
 ### Phase 2: Core Extensions
 **Goal**: Team can run code review and refactoring workflows with structured output
@@ -88,7 +88,7 @@ Phases execute in numeric order: 1 -> 1.1 -> 2 -> 2.1 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/2 | Planned | - |
+| 1. Foundation | 2/2 | ✓ Complete | 2025-01-24 |
 | 2. Core Extensions | 0/2 | Not started | - |
 | 3. Advanced Extensions | 0/2 | Not started | - |
 | 4. Quality & Architecture | 0/3 | Not started | - |
