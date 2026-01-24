@@ -81,6 +81,29 @@ Next steps:
 - Add project rules to .claude/rules/
 ```
 
+### Step 4: Display MCP Guidelines
+
+After initialization, also display the MCP token budget guidelines:
+
+```
+MCP Token Budget Guidelines
+---------------------------
+- MCP tools should not exceed 40% of context
+- Check usage with: /context or /pl:context
+- Enable early Tool Search: ENABLE_TOOL_SEARCH=auto:5
+
+Recommended MCP Configuration:
+1. Use CLI tools (gh, aws, gcloud) when available
+2. Prefer project-scoped MCP over user-scoped
+3. Disable unused servers: /mcp
+4. Set output limits: MAX_MCP_OUTPUT_TOKENS=25000
+
+Check MCP health:
+/mcp          # List and manage servers
+/context      # See token breakdown
+/pl:context   # Potenlab context summary
+```
+
 ## Note
 
 This is a skeleton implementation for Phase 1. Full MCP configuration, rules templates, and agent setup will be added in later phases.
@@ -91,3 +114,4 @@ This is a skeleton implementation for Phase 1. Full MCP configuration, rules tem
 - Standard rule sets for different project types
 - Agent configuration for common workflows
 - Interactive setup wizard
+- ENABLE_TOOL_SEARCH auto-configuration
