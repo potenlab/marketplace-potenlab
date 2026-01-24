@@ -1,0 +1,16 @@
+{
+  "name": "potenlab-marketplace",
+  "owner": {
+    "name": "Potenlab"
+  },
+  "metadata": {
+    "description": "Official Potenlab Claude Code plugins",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "pl",
+      "source": "./"
+    }
+  ]
+}
