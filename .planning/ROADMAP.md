@@ -11,7 +11,7 @@ This roadmap delivers an internal Claude Code extension ecosystem for Potenlab. 
 - Decimal phases (1.1, 2.1): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 1: Foundation** - Plugin manifest, `/pl:help`, `/pl:init`, and GitHub installation
-- [ ] **Phase 2: Core Extensions** - `/pl:review` and `/pl:refactor` skills with tool restrictions
+- [x] **Phase 2: Core Extensions** - `/pl:review` and `/pl:refactor` skills with tool restrictions
 - [ ] **Phase 3: Advanced Extensions** - `/pl:research` (parallel sub-agents) and `/pl:slice` (Figma MCP)
 - [ ] **Phase 4: Quality & Architecture** - Context management, output standards, commit workflow, and sub-agent patterns
 
@@ -44,8 +44,8 @@ Plans:
 **Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 02-01-PLAN.md - Create review and refactor skills with structured output (Wave 1)
-- [ ] 02-02-PLAN.md - Update help command and verify plugin structure (Wave 2)
+- [x] 02-01-PLAN.md - Create review and refactor skills with structured output (Wave 1)
+- [x] 02-02-PLAN.md - Update help command and verify plugin structure (Wave 2)
 
 ### Phase 3: Advanced Extensions
 **Goal**: Team can run parallel research workflows and convert Figma designs to code
@@ -89,7 +89,7 @@ Phases execute in numeric order: 1 -> 1.1 -> 2 -> 2.1 -> 3 -> 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete | 2025-01-24 |
-| 2. Core Extensions | 0/2 | Planned | - |
+| 2. Core Extensions | 2/2 | Complete | 2025-01-24 |
 | 3. Advanced Extensions | 0/2 | Not started | - |
 | 4. Quality & Architecture | 0/3 | Not started | - |
 

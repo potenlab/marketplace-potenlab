@@ -16,8 +16,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Core Extensions
 
-- [ ] **EXT-01**: `/pl:review` analyzes code and returns structured feedback
-- [ ] **EXT-02**: `/pl:refactor` refactors code with clear before/after explanation
+- [x] **EXT-01**: `/pl:review` analyzes code and returns structured feedback
+- [x] **EXT-02**: `/pl:refactor` refactors code with clear before/after explanation
 - [ ] **EXT-03**: `/pl:research <topic>` spawns parallel sub-agents and synthesizes results
 - [ ] **EXT-04**: `/pl:slice <figma-link>` converts Figma design to code via MCP
 
@@ -72,8 +72,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLUG-02 | Phase 1 | Complete |
 | PLUG-03 | Phase 1 | Complete |
 | PLUG-04 | Phase 1 | Complete |
-| EXT-01 | Phase 2 | Pending |
-| EXT-02 | Phase 2 | Pending |
+| EXT-01 | Phase 2 | Complete |
+| EXT-02 | Phase 2 | Complete |
 | EXT-03 | Phase 3 | Pending |
 | EXT-04 | Phase 3 | Pending |
 | QUAL-01 | Phase 4 | Pending |
@@ -90,4 +90,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2025-01-24*
-*Last updated: 2025-01-24 after roadmap creation*
+*Last updated: 2025-01-24 after Phase 2 completion*
