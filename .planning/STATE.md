@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2025-01-24)
 ## Current Position
 
 Phase: 4 of 4 (Quality & Architecture - IN PROGRESS)
-Plan: 2 of 3 in Phase 4 (complete)
-Status: Plan 04-02 complete, ready for 04-03
-Last activity: 2026-01-24 - Completed 04-02-PLAN.md (output standards documentation)
+Plan: 2 of 3 in Phase 4 (complete: 01, 02)
+Status: Plans 04-01 and 04-02 complete, ready for 04-03
+Last activity: 2026-01-24 - Completed 04-01-PLAN.md (context and commit skills)
 
 Progress: [████████░░] 80%
 
@@ -30,11 +30,11 @@ Progress: [████████░░] 80%
 | 01-foundation | 2 | ~16m | ~8m |
 | 02-core-extensions | 2 | ~3m | ~1.5m |
 | 03-advanced-extensions | 2 | ~4m | ~2m |
-| 04-quality-architecture | 2 | ~2m | ~1m |
+| 04-quality-architecture | 2 | ~2m 30s | ~1m 15s |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (37s), 03-01 (2m), 03-02 (1m 38s), 04-01 (assumed), 04-02 (1m 16s)
-- Trend: Fast execution continues for documentation tasks
+- Last 5 plans: 03-01 (2m), 03-02 (1m 38s), 04-02 (1m 16s), 04-01 (1m 23s)
+- Trend: Fast execution continues for skill and documentation tasks
 
 *Updated after each plan completion*
 
@@ -60,6 +60,10 @@ Recent decisions affecting current work:
 - 40% MCP context threshold as warning guideline (04-02)
 - 5-7 concurrent sub-agents recommended for reliability (04-02)
 - ENABLE_TOOL_SEARCH=auto:5 for earlier optimization (04-02)
+- Both context and commit skills use disable-model-invocation: true (04-01)
+- Context skill runs /cost and /context for token data (04-01)
+- Commit skill uses dynamic injection for git state (04-01)
+- Help commands ordered alphabetically with 8 total commands (04-01)
 
 ### Pending Todos
 
@@ -71,6 +75,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-24T07:37:09Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-01-24T07:37:16Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None
