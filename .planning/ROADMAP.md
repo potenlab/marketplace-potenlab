@@ -41,11 +41,11 @@ Plans:
   2. `/pl:review` operates in read-only mode (cannot modify files)
   3. Running `/pl:refactor <file>` modifies code and shows before/after explanation
   4. Refactored code is verified by tests before completion
-**Plans**: TBD
+**Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 02-01: Review skill with read-only tools
-- [ ] 02-02: Refactor skill with edit capabilities
+- [ ] 02-01-PLAN.md - Create review and refactor skills with structured output (Wave 1)
+- [ ] 02-02-PLAN.md - Update help command and verify plugin structure (Wave 2)
 
 ### Phase 3: Advanced Extensions
 **Goal**: Team can run parallel research workflows and convert Figma designs to code
@@ -88,8 +88,8 @@ Phases execute in numeric order: 1 -> 1.1 -> 2 -> 2.1 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 2/2 | ✓ Complete | 2025-01-24 |
-| 2. Core Extensions | 0/2 | Not started | - |
+| 1. Foundation | 2/2 | Complete | 2025-01-24 |
+| 2. Core Extensions | 0/2 | Planned | - |
 | 3. Advanced Extensions | 0/2 | Not started | - |
 | 4. Quality & Architecture | 0/3 | Not started | - |
 
