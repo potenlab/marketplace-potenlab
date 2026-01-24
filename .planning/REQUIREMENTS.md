@@ -18,8 +18,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **EXT-01**: `/pl:review` analyzes code and returns structured feedback
 - [x] **EXT-02**: `/pl:refactor` refactors code with clear before/after explanation
-- [ ] **EXT-03**: `/pl:research <topic>` spawns parallel sub-agents and synthesizes results
-- [ ] **EXT-04**: `/pl:slice <figma-link>` converts Figma design to code via MCP
+- [x] **EXT-03**: `/pl:research <topic>` spawns parallel sub-agents and synthesizes results
+- [x] **EXT-04**: `/pl:slice <figma-link>` converts Figma design to code via MCP
 
 ### Quality & Workflow
 
@@ -74,8 +74,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLUG-04 | Phase 1 | Complete |
 | EXT-01 | Phase 2 | Complete |
 | EXT-02 | Phase 2 | Complete |
-| EXT-03 | Phase 3 | Pending |
-| EXT-04 | Phase 3 | Pending |
+| EXT-03 | Phase 3 | Complete |
+| EXT-04 | Phase 3 | Complete |
 | QUAL-01 | Phase 4 | Pending |
 | QUAL-02 | Phase 4 | Pending |
 | QUAL-03 | Phase 4 | Pending |
@@ -90,4 +90,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2025-01-24*
-*Last updated: 2025-01-24 after Phase 2 completion*
+*Last updated: 2026-01-24 after Phase 3 completion*
