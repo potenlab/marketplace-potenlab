@@ -1,7 +1,6 @@
 ---
 name: init
 description: Configure project with MCPs, rules, and agents in one command
-disable-model-invocation: true
 ---
 
 # Project Initialization

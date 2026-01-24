@@ -1,7 +1,6 @@
 ---
 name: help
 description: Display all available Potenlab commands with descriptions
-disable-model-invocation: true
 ---
 
 # Potenlab Help
