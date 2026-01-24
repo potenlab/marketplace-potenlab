@@ -57,11 +57,11 @@ Plans:
   3. Running `/pl:slice <figma-link>` fetches design from Figma via MCP
   4. Figma designs are converted to component code matching team patterns
   5. Each sub-agent returns a summary (not verbose exploration logs)
-**Plans**: TBD
+**Plans**: 2 plans in 1 wave
 
 Plans:
-- [ ] 03-01: Research skill with parallel sub-agent orchestration
-- [ ] 03-02: Slice skill with Figma MCP integration
+- [ ] 03-01-PLAN.md - Research skill with parallel sub-agent orchestration (Wave 1)
+- [ ] 03-02-PLAN.md - Slice skill with Figma MCP integration and help update (Wave 1)
 
 ### Phase 4: Quality & Architecture
 **Goal**: All extensions follow consistent patterns for context management, output format, and sub-agent isolation
