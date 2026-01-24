@@ -26,11 +26,11 @@ This roadmap delivers an internal Claude Code extension ecosystem for Potenlab. 
   2. Running `/pl:help` displays all available commands with descriptions
   3. Running `/pl:init` configures MCPs, rules, and agents in one command
   4. Team member can install plugin via `claude plugin install <github-url>`
-**Plans**: TBD
+**Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 01-01: Plugin manifest and directory structure
-- [ ] 01-02: Help command and init workflow
+- [ ] 01-01-PLAN.md - Plugin manifest, marketplace catalog, README, and CHANGELOG (Wave 1)
+- [ ] 01-02-PLAN.md - Help and init skills with installation verification (Wave 2)
 
 ### Phase 2: Core Extensions
 **Goal**: Team can run code review and refactoring workflows with structured output
@@ -88,7 +88,7 @@ Phases execute in numeric order: 1 -> 1.1 -> 2 -> 2.1 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/2 | Not started | - |
+| 1. Foundation | 0/2 | Planned | - |
 | 2. Core Extensions | 0/2 | Not started | - |
 | 3. Advanced Extensions | 0/2 | Not started | - |
 | 4. Quality & Architecture | 0/3 | Not started | - |
