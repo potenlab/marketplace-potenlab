@@ -23,15 +23,15 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Quality & Workflow
 
-- [ ] **QUAL-01**: `/pl:context` shows current token usage and budget status
-- [ ] **QUAL-02**: All extensions return standardized, summary-format outputs
-- [ ] **QUAL-03**: `/pl:commit` creates well-formatted commits with context
+- [x] **QUAL-01**: `/pl:context` shows current token usage and budget status
+- [x] **QUAL-02**: All extensions return standardized, summary-format outputs
+- [x] **QUAL-03**: `/pl:commit` creates well-formatted commits with context
 
 ### Architecture Patterns
 
-- [ ] **ARCH-01**: Sub-agents use isolated context windows (200K each)
-- [ ] **ARCH-02**: Parallel execution uses Task tool with up to 7 concurrent sub-agents
-- [ ] **ARCH-03**: MCP integration follows token budget guidelines (avoid 40%+ context bloat)
+- [x] **ARCH-01**: Sub-agents use isolated context windows (200K each)
+- [x] **ARCH-02**: Parallel execution uses Task tool with up to 7 concurrent sub-agents
+- [x] **ARCH-03**: MCP integration follows token budget guidelines (avoid 40%+ context bloat)
 
 ## v2 Requirements
 
@@ -76,12 +76,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXT-02 | Phase 2 | Complete |
 | EXT-03 | Phase 3 | Complete |
 | EXT-04 | Phase 3 | Complete |
-| QUAL-01 | Phase 4 | Pending |
-| QUAL-02 | Phase 4 | Pending |
-| QUAL-03 | Phase 4 | Pending |
-| ARCH-01 | Phase 4 | Pending |
-| ARCH-02 | Phase 4 | Pending |
-| ARCH-03 | Phase 4 | Pending |
+| QUAL-01 | Phase 4 | Complete |
+| QUAL-02 | Phase 4 | Complete |
+| QUAL-03 | Phase 4 | Complete |
+| ARCH-01 | Phase 4 | Complete |
+| ARCH-02 | Phase 4 | Complete |
+| ARCH-03 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 14 total
@@ -90,4 +90,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2025-01-24*
-*Last updated: 2026-01-24 after Phase 3 completion*
+*Last updated: 2026-01-24 after Phase 4 completion (v1 complete)*
