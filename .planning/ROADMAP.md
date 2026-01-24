@@ -14,6 +14,7 @@ This roadmap delivers an internal Claude Code extension ecosystem for Potenlab. 
 - [x] **Phase 2: Core Extensions** - `/pl:review` and `/pl:refactor` skills with tool restrictions
 - [x] **Phase 3: Advanced Extensions** - `/pl:research` (parallel sub-agents) and `/pl:slice` (Figma MCP)
 - [x] **Phase 4: Quality & Architecture** - Context management, output standards, commit workflow, and sub-agent patterns
+- [ ] **Phase 5: Command Registration Fix** - Create missing command files to enable all slash commands
 
 ## Phase Details
 
@@ -81,6 +82,22 @@ Plans:
 - [x] 04-02-PLAN.md - Output format template and architecture documentation (Wave 1)
 - [x] 04-03-PLAN.md - Verification and human approval checkpoint (Wave 2)
 
+### Phase 5: Command Registration Fix
+**Goal**: All 8 slash commands are accessible via `/pl:*` syntax
+**Depends on**: Phase 4
+**Requirements**: PLUG-02, EXT-03, EXT-04, QUAL-01, QUAL-03
+**Gap Closure**: Fixes integration gaps from v1-MILESTONE-AUDIT.md
+**Success Criteria** (what must be TRUE):
+  1. Running `/pl:research` invokes the research skill
+  2. Running `/pl:slice` invokes the slice skill
+  3. Running `/pl:commit` invokes the commit skill
+  4. Running `/pl:context` invokes the context skill
+  5. Running `/pl:help` displays all 8 commands
+**Plans**: 1 plan in 1 wave
+
+Plans:
+- [ ] 05-01-PLAN.md - Create 4 command files and update help (Wave 1)
+
 ## Progress
 
 **Execution Order:**
@@ -92,6 +109,7 @@ Phases execute in numeric order: 1 -> 1.1 -> 2 -> 2.1 -> 3 -> 4
 | 2. Core Extensions | 2/2 | Complete | 2025-01-24 |
 | 3. Advanced Extensions | 2/2 | Complete | 2026-01-24 |
 | 4. Quality & Architecture | 3/3 | Complete | 2026-01-24 |
+| 5. Command Registration Fix | 0/1 | Pending | - |
 
 ---
 *Roadmap created: 2025-01-24*
