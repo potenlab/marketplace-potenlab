@@ -10,10 +10,14 @@ Display all available `/pl:*` commands from the Potenlab team toolkit.
 
 | Command | Description |
 |---------|-------------|
+| `/pl:commit [hint]` | Create well-formatted git commits with conventional commits format |
+| `/pl:context` | Display current token usage and budget status with recommendations |
 | `/pl:help` | Display this help message showing all available commands |
 | `/pl:init` | Initialize project with MCPs, rules, and agents in one command |
-| `/pl:review <file>` | Analyze code and return structured feedback (read-only) |
 | `/pl:refactor <file>` | Refactor code with before/after explanation and test verification |
+| `/pl:research <topic>` | Research a topic using parallel sub-agents across multiple dimensions |
+| `/pl:review <file>` | Analyze code and return structured feedback (read-only) |
+| `/pl:slice <figma-link>` | Convert Figma design to component code using MCP integration |
 
 ## Usage
 
@@ -22,13 +26,6 @@ Simply run any command in Claude Code:
 ```
 /pl:help
 ```
-
-## Coming Soon
-
-Additional commands will be added in future phases:
-
-- `/pl:research` - Parallel research agents
-- `/pl:slice` - Figma to code conversion
 
 ## About
 
