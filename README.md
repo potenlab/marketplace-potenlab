@@ -24,6 +24,9 @@ After installation, the following commands are available in Claude Code:
 | `/pl:context` | Display current token usage and budget status with recommendations |
 | `/pl:help` | Display available commands and usage |
 | `/pl:init` | Initialize a project with team tooling |
+| `/pl:qa-check [id]` | Create git branch, commit, and PR for QA fixes |
+| `/pl:qa-list` | Generate QA list from Google Sheets with local image tags |
+| `/pl:qa-plan` | Transform QA findings into actionable developer tasks |
 | `/pl:refactor <file>` | Refactor code with before/after explanation and test verification |
 | `/pl:research <topic>` | Research a topic using parallel sub-agents across multiple dimensions |
 | `/pl:review <file>` | Analyze code and return structured feedback (read-only) |
@@ -33,6 +36,7 @@ After installation, the following commands are available in Claude Code:
 
 - Claude Code version 1.0.33 or higher
 - GitHub access (for marketplace installation)
+- **For QA Workflow:** [Google Drive MCP](https://github.com/piotr-agier/google-drive-mcp) (see [QA Workflow Setup](#qa-workflow-setup))
 
 ## Usage
 
@@ -69,6 +73,79 @@ This will configure:
 /pl:context                             # Check token usage and budget
 /pl:commit "add user auth"              # Create well-formatted commit
 ```
+
+### QA Workflow
+
+```
+/pl:qa-list                             # Generate QA list from Google Sheets
+/pl:qa-plan                             # Create developer tasks from QA list
+/pl:qa-check 002                        # Create fix branch and PR for item 002
+```
+
+## QA Workflow Setup
+
+The QA commands require the **Google Drive MCP** to access Google Sheets and Drive files.
+
+### Step 1: Install Google Drive MCP
+
+```bash
+git clone https://github.com/piotr-agier/google-drive-mcp.git
+cd google-drive-mcp
+npm install
+npm run build
+```
+
+### Step 2: Configure MCP in Claude Code
+
+Add to your `~/.claude/.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "google-drive": {
+      "command": "node",
+      "args": ["/path/to/google-drive-mcp/dist/index.js"],
+      "env": {
+        "GOOGLE_CLIENT_ID": "your-client-id",
+        "GOOGLE_CLIENT_SECRET": "your-client-secret"
+      }
+    }
+  }
+}
+```
+
+See [google-drive-mcp](https://github.com/piotr-agier/google-drive-mcp) for OAuth setup.
+
+### Step 3: QA Workflow
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│  Google Sheets  │────▶│   /pl:qa-list    │────▶│ qa-list-auto-   │
+│  (QA tracking)  │     │                  │     │ mated.md        │
+└─────────────────┘     └──────────────────┘     └────────┬────────┘
+                                                          │
+┌─────────────────┐     ┌──────────────────┐              │
+│  Google Drive   │────▶│  qa-image-tag    │──────────────┘
+│  (screenshots)  │     │  (auto-runs)     │
+└─────────────────┘     └──────────────────┘
+
+                        ┌──────────────────┐     ┌─────────────────┐
+                        │   /pl:qa-plan    │────▶│   qa-plan.md    │
+                        │                  │     │ (dev tasks)     │
+                        └──────────────────┘     └─────────────────┘
+
+                        ┌──────────────────┐     ┌─────────────────┐
+                        │  /pl:qa-check    │────▶│   GitHub PR     │
+                        │                  │     │                 │
+                        └──────────────────┘     └─────────────────┘
+```
+
+**First run of `/pl:qa-list`** will prompt for:
+- Google Sheets link (QA tracking spreadsheet)
+- Google Drive link (screenshots folder)
+- Local image path (e.g., `@Images/`)
+
+Configuration is saved to `source.json` for future runs.
 
 ### Get Help
 
