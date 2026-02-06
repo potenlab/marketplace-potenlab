@@ -17,7 +17,7 @@ A production-ready starter for building MVPs with Next.js 16 and Supabase, desig
 
 ```bash
 git clone <your-repo-url>
-cd next-supabase
+cd medium-project
 bun install
 ```
 
