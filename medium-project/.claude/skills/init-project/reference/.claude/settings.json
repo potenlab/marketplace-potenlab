@@ -1,0 +1,37 @@
+{
+  "$schema": "https://claude.ai/schemas/claude-code-settings.json",
+  "project": {
+    "name": "My Project",
+    "description": "Project description",
+    "packageManager": "bun"
+  },
+  "commands": {
+    "install": "bun install",
+    "dev": "bun run dev",
+    "build": "bun run build",
+    "lint": "bun run lint",
+    "typecheck": "bunx tsc --noEmit"
+  },
+  "checkpoints": {
+    "prefix": "CP",
+    "requireBuildPass": true
+  },
+  "mcp": {
+    "required": ["supabase", "shadcn"],
+    "optional": ["context7", "figma"]
+  },
+  "git": {
+    "createBackupBeforeRollback": true,
+    "warnOnUncommittedChanges": true
+  },
+  "planning": {
+    "directory": ".planning",
+    "files": {
+      "prd": "PRD.md",
+      "checkpoints": "CHECKPOINTS.md",
+      "rules": "RULES.md",
+      "handoff": "HANDOFF.md",
+      "debugLog": "DEBUG-LOG.md"
+    }
+  }
+}
