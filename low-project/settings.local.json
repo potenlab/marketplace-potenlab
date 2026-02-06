@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(npm run build:*)",
+      "Bash(node:*)",
+      "Bash(npx next build:*)",
+      "Bash(git stash:*)",
+      "Bash(timeout 30 npx next dev:*)",
+      "Bash(lsof:*)",
+      "Bash(npm install:*)",
+      "Bash(git checkout:*)",
+      "Bash(xargs kill:*)",
+      "mcp__ide__getDiagnostics"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
+}
