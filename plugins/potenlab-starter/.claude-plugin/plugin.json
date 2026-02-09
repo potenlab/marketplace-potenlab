@@ -1,0 +1,8 @@
+{
+  "name": "potenlab-starter",
+  "version": "0.1.0",
+  "description": "Starter plugin to validate marketplace installation",
+  "author": {
+    "name": "Potenlab"
+  }
+}
