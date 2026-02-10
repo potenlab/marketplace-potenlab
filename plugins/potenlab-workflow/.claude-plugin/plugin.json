@@ -1,0 +1,23 @@
+{
+  "name": "potenlab-workflow",
+  "version": "0.2.0",
+  "description": "Full-stack project planning and execution plugin for Claude Code. Orchestrates specialist agents to plan, build, and iterate on projects.",
+  "author": {
+    "name": "Potenlab",
+    "url": "https://github.com/potenlab"
+  },
+  "repository": "https://github.com/potenlab/marketplace-potenlab",
+  "license": "MIT",
+  "keywords": [
+    "planning",
+    "development",
+    "orchestration",
+    "agents",
+    "supabase",
+    "react",
+    "nextjs"
+  ],
+  "commands": "./commands/",
+  "agents": "./agents/",
+  "skills": "./skills/"
+}

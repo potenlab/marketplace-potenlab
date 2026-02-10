@@ -7,9 +7,9 @@
   },
   "plugins": [
     {
-      "name": "potenlab-starter",
-      "source": "./plugins/potenlab-starter",
-      "description": "Starter plugin to validate marketplace installation"
+      "name": "potenlab-workflow",
+      "source": "./plugins/potenlab-workflow",
+      "description": "Full-stack project planning and execution plugin with specialist agents"
     }
   ]
 }
