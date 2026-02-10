@@ -120,33 +120,65 @@ src/
 </project_structure>
 
 <best_practices>
-## Vercel React Best Practices Reference
+## Vercel React Best Practices (57 Rules — Inline Reference)
 
-**MANDATORY: Before planning any component, read the best practices documentation.**
+**MANDATORY: Apply these rules to every component specification.**
 
-The complete Vercel React Best Practices (57 rules across 8 categories) are available in the `rules/` directory:
+### CRITICAL — Eliminating Waterfalls
+- **Defer Await:** Don't `await` a promise until you actually need the value. Start fetches early, await late.
+- **Parallel Fetching:** Use `Promise.all()` for independent operations. Never chain sequential fetches.
+- **Suspense Boundaries:** Place per data source, not per component. Prevents one slow fetch from blocking everything.
+- **API Route Waterfalls:** In API routes, parallelize DB queries and external calls.
+- **Dependency-Based:** Identify truly sequential vs independent operations; parallelize the independent ones.
 
-```
-Read: rules/AGENTS.md — Full compiled document with all 57 rules
-```
+### CRITICAL — Bundle Size Optimization
+- **No Barrel Imports:** Never `import { X } from './index'`. Import directly from source file.
+- **Dynamic Imports:** Use `next/dynamic` for heavy components not needed on initial render.
+- **Defer Third-Party:** Load analytics, chat widgets, and non-critical scripts after initial render.
+- **Conditional Loading:** Only import modules when the feature/condition is active.
+- **Preload Critical:** Use `<link rel="preload">` for above-the-fold resources.
 
-For specific rules, read individual files from `rules/`:
+### HIGH — Server-Side Performance
+- **React.cache():** Deduplicate identical server-side fetches within a request.
+- **Parallel Server Fetching:** Use `Promise.all()` in server components.
+- **after() for Non-Blocking:** Use Next.js `after()` for logging, analytics — don't block the response.
+- **Auth in Server Actions:** Validate auth in server actions, not just middleware.
+- **Dedup Props:** Don't pass server data as props when child can fetch directly.
+- **Serialization:** Only pass serializable data from server to client components.
 
-| Priority | Category | Impact | Prefix | Key Rules |
-|----------|----------|--------|--------|-----------|
-| 1 | Eliminating Waterfalls | CRITICAL | `async-` | `async-parallel`, `async-suspense-boundaries` |
-| 2 | Bundle Size Optimization | CRITICAL | `bundle-` | `bundle-barrel-imports`, `bundle-dynamic-imports` |
-| 3 | Server-Side Performance | HIGH | `server-` | `server-cache-react`, `server-parallel-fetching` |
-| 4 | Client-Side Data Fetching | MEDIUM-HIGH | `client-` | `client-swr-dedup`, `client-event-listeners` |
-| 5 | Re-render Optimization | MEDIUM | `rerender-` | `rerender-memo`, `rerender-derived-state` |
-| 6 | Rendering Performance | MEDIUM | `rendering-` | `rendering-conditional-render`, `rendering-hoist-jsx` |
-| 7 | JavaScript Performance | LOW-MEDIUM | `js-` | `js-index-maps`, `js-early-exit` |
-| 8 | Advanced Patterns | LOW | `advanced-` | `advanced-init-once`, `advanced-use-latest` |
+### MEDIUM-HIGH — Client-Side Data
+- **SWR/React Query Dedup:** Let the library deduplicate identical requests.
+- **Event Listener Cleanup:** Always clean up subscriptions and listeners in useEffect return.
+- **LocalStorage Schema:** Version your localStorage keys to handle schema changes.
+- **Passive Event Listeners:** Use `{ passive: true }` for scroll/touch handlers.
 
-### How to Use
-1. **Before starting:** Read `rules/AGENTS.md` for the full compiled guide
-2. **For specific rules:** Read `rules/{rule-name}.md`
-3. **Apply CRITICAL rules to every component spec** — especially waterfalls and bundle size
+### MEDIUM — Re-render Optimization
+- **React.memo():** Use for components in lists or frequently re-rendering parents.
+- **Derived State:** Calculate in render, never sync with useEffect.
+- **Functional setState:** Use `setCount(prev => prev + 1)` when state depends on previous.
+- **useRef for Transient:** Use refs for values that change but don't need re-renders.
+- **Lazy State Init:** Pass function to useState for expensive initial values: `useState(() => compute())`.
+- **useTransition:** Wrap expensive state updates to keep UI responsive.
+
+### MEDIUM — Rendering Performance
+- **Conditional Render:** Use early returns and guard clauses to skip unnecessary renders.
+- **Hoist Static JSX:** Move static JSX outside component body to prevent recreation.
+- **content-visibility:** Use CSS `content-visibility: auto` for long off-screen lists.
+- **Hydration:** Suppress hydration warnings only for truly dynamic client values.
+
+### LOW-MEDIUM — JavaScript Performance
+- **Set/Map for Lookups:** Use `Map` or `Set` instead of array `.find()` for frequent lookups.
+- **Early Exit:** Return early from functions when conditions aren't met.
+- **Cache Function Results:** Memoize expensive pure functions.
+- **Hoist RegExp:** Define regex patterns outside loops/functions.
+
+### LOW — Advanced Patterns
+- **Init Once:** Use module-level initialization for singletons (DB clients, SDK instances).
+- **useLatest:** Ref pattern for always-current callback values without effect re-runs.
+- **Event Handler Refs:** Store event handlers in refs to avoid re-subscribing.
+
+### For Latest Docs
+Use `mcp__context7__*` tools to look up the latest React, Next.js, or Vercel best practices when you need specifics beyond this reference.
 </best_practices>
 
 <process>
@@ -173,10 +205,9 @@ mcp__shadcn__view_items_in_registries items=["@shadcn/button", "@shadcn/card"]
 mcp__shadcn__get_item_examples_from_registries registries=["@shadcn"] query="[demo]"
 ```
 
-### Step 3: Read Best Practices
-```
-Read: rules/AGENTS.md
-```
+### Step 3: Review Best Practices
+
+Review the inline best practices in the `<best_practices>` section above. Apply CRITICAL rules (waterfalls, bundle size) to every component spec. Use `mcp__context7__*` for additional React/Next.js documentation if needed.
 
 ### Step 4: Extract Frontend Tasks from dev-plan.md
 

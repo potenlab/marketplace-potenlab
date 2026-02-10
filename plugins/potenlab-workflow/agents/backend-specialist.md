@@ -75,33 +75,58 @@ ui-ux-plan.md → tech-lead-specialist → dev-plan.md
 </data_flow>
 
 <best_practices>
-## Supabase Postgres Best Practices Reference
+## Supabase Postgres Best Practices (30 Rules — Inline Reference)
 
-**MANDATORY: Before planning any schema or query, read the best practices documentation.**
+**MANDATORY: Apply these rules to every table, migration, and query specification.**
 
-The complete Supabase Postgres Best Practices (30 rules across 8 categories) are available in the `references/` directory:
+### CRITICAL — Query Performance
+- **Missing Indexes:** Every column used in WHERE, JOIN, or ORDER BY should have an index. Use `EXPLAIN ANALYZE` to verify.
+- **Composite Indexes:** For multi-column WHERE clauses, create composite indexes with most selective column first.
+- **Covering Indexes:** Include frequently selected columns in the index with `INCLUDE` to avoid table lookups.
+- **Index Types:** Use B-tree (default) for equality/range, GIN for JSONB/arrays/full-text, GiST for geometry/range types.
+- **Partial Indexes:** Use `WHERE` in index definition for queries that always filter on a condition (e.g., `WHERE status = 'active'`).
 
-```
-Read: references/AGENTS.md — Navigation guide with all available references
-```
+### CRITICAL — Connection Management
+- **Connection Pooling:** Always use Supavisor (Supabase built-in pooler). Never connect directly in production.
+- **Connection Limits:** Respect pool limits. Default: 15 connections for small instances. Don't exhaust the pool.
+- **Idle Timeout:** Set `idle_in_transaction_session_timeout = '30s'` to prevent idle transactions holding locks.
+- **Prepared Statements:** Use session mode (not transaction mode) only when prepared statements are needed. Default to transaction mode.
 
-For specific rules, read individual files from `references/`:
+### CRITICAL — Security & RLS
+- **RLS Basics:** Enable RLS on ALL user-data tables. Use `auth.uid()` for ownership checks. Always `FORCE ROW LEVEL SECURITY`.
+- **RLS Performance:** Keep policies simple — avoid subqueries. Use security definer functions for complex access patterns. Index columns used in RLS policies.
+- **Privileges:** Grant minimum required permissions. Use `GRANT SELECT, INSERT, UPDATE, DELETE ON table TO authenticated` — never grant ALL.
 
-| Priority | Category | Impact | Prefix | Key Rules |
-|----------|----------|--------|--------|-----------|
-| 1 | Query Performance | CRITICAL | `query-` | `query-missing-indexes`, `query-composite-indexes` |
-| 2 | Connection Management | CRITICAL | `conn-` | `conn-pooling`, `conn-limits` |
-| 3 | Security & RLS | CRITICAL | `security-` | `security-rls-basics`, `security-rls-performance` |
-| 4 | Schema Design | HIGH | `schema-` | `schema-primary-keys`, `schema-foreign-key-indexes` |
-| 5 | Concurrency & Locking | MEDIUM-HIGH | `lock-` | `lock-short-transactions`, `lock-skip-locked` |
-| 6 | Data Access Patterns | MEDIUM | `data-` | `data-n-plus-one`, `data-pagination` |
-| 7 | Monitoring & Diagnostics | LOW-MEDIUM | `monitor-` | `monitor-explain-analyze`, `monitor-pg-stat-statements` |
-| 8 | Advanced Features | LOW | `advanced-` | `advanced-jsonb-indexing`, `advanced-full-text-search` |
+### HIGH — Schema Design
+- **Primary Keys:** Use `bigint GENERATED ALWAYS AS IDENTITY` for most tables. Use UUIDv7 (not v4) when distributed generation is needed. Never use `serial`.
+- **Data Types:** Use `TIMESTAMPTZ` (never TIMESTAMP). Use `NUMERIC` for money. Use `BOOLEAN` not text 'true'/'false'. Use `JSONB` not JSON.
+- **FK Indexes:** **Postgres does NOT auto-index foreign key columns.** Always create explicit indexes on FK columns.
+- **Lowercase Identifiers:** Use snake_case for all table and column names. Never use quoted identifiers.
+- **Partitioning:** Consider range partitioning for tables expected to exceed 100M rows (by date, typically).
 
-### How to Use
-1. **Before starting:** Read `references/AGENTS.md` for the full reference index
-2. **For specific rules:** Read `references/{rule-name}.md`
-3. **Apply CRITICAL rules to every table and query spec** — especially indexes, RLS, and connection management
+### MEDIUM-HIGH — Concurrency & Locking
+- **Short Transactions:** Keep transactions as short as possible. Never hold transactions open during user interactions.
+- **Deadlock Prevention:** Always lock tables/rows in consistent order across all transactions.
+- **SKIP LOCKED:** Use `FOR UPDATE SKIP LOCKED` for queue-like patterns to avoid blocking.
+- **Advisory Locks:** Use `pg_advisory_lock()` for application-level coordination without row-level contention.
+
+### MEDIUM — Data Access Patterns
+- **N+1 Prevention:** Use JOINs or batch queries. Never fetch parent then loop to fetch children.
+- **Pagination:** Use cursor-based pagination (keyset) for large datasets. Never use OFFSET for pages > 100.
+- **Batch Inserts:** Use multi-row INSERT for bulk operations. Never insert one row at a time in a loop.
+- **Upsert:** Use `INSERT ... ON CONFLICT` for idempotent operations.
+
+### LOW-MEDIUM — Monitoring
+- **EXPLAIN ANALYZE:** Always check query plans for sequential scans on large tables.
+- **pg_stat_statements:** Monitor for slow queries and missing indexes.
+- **VACUUM/ANALYZE:** Ensure autovacuum is properly configured. Run manual ANALYZE after bulk data changes.
+
+### LOW — Advanced
+- **JSONB Indexing:** Use GIN indexes on JSONB columns queried with `@>`, `?`, `?|`, `?&` operators.
+- **Full-Text Search:** Use `tsvector` columns with GIN indexes instead of `LIKE '%term%'`.
+
+### For Latest Docs
+Use `mcp__context7__*` tools to look up the latest Supabase, Postgres, or SQL best practices when you need specifics beyond this reference.
 </best_practices>
 
 <process>
@@ -119,10 +144,9 @@ Glob: **/ui-ux-plan.md
 Read: [found path]
 ```
 
-### Step 2: Read Best Practices
-```
-Read: references/AGENTS.md
-```
+### Step 2: Review Best Practices
+
+Review the inline best practices in the `<best_practices>` section above. Apply CRITICAL rules (indexes, RLS, connections) to every table and query spec. Use `mcp__context7__*` for additional Supabase/Postgres documentation if needed.
 
 ### Step 3: Discover Current Database State (MANDATORY)
 ```

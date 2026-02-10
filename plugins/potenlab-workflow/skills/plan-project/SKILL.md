@@ -1,5 +1,5 @@
 ---
-name: plan
+name: plan-project
 description: "Orchestrates sequential project planning. First validates user intent via AskUserQuestion (MANDATORY), then spawns ui-ux-specialist to create ui-ux-plan.md, then tech-lead-specialist to create dev-plan.md from ui-ux-plan.md, then spawns frontend-specialist and backend-specialist in parallel to create their detailed plans from dev-plan.md. Triggers on: plan, create plan, plan project, project plan, full plan, prd to plan."
 user-invocable: true
 ---
