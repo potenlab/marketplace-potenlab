@@ -1,24 +1,37 @@
-# Supabase Postgres Best Practices — Reference Docs
+# Reference Docs — Navigation Guide
 
 ## Overview
 
-Postgres performance optimization and best practices from Supabase. These reference docs are used by the `backend-specialist` agent when writing, reviewing, or optimizing Postgres queries, schema designs, or database configurations.
+Best practices reference docs used by specialist agents. Covers Supabase/Postgres (backend-specialist) and Vitest testing (all agents writing tests).
 
 ## Structure
 
 ```
 references/
   AGENTS.md                    # This navigation guide
-  {prefix}-{topic}.md          # Individual reference files (30 total)
+  {prefix}-{topic}.md          # Individual reference files (30 Postgres)
+  vitest-best-practices.md     # Consolidated vitest testing guide
 ```
 
 ## Usage
 
 1. Read this file (`AGENTS.md`) for the full reference index
-2. Read individual `{prefix}-{topic}.md` files for detailed documentation
+2. Read individual files for detailed documentation
 3. Reference files are loaded on-demand — read only what you need
 
-## Reference Categories
+---
+
+## Vitest Testing
+
+| File | Impact | Use When |
+|------|--------|----------|
+| `vitest-best-practices.md` | CRITICAL | Writing, reviewing, or refactoring `*.test.ts` / `*.spec.ts` files |
+
+Covers: organization, AAA pattern, parameterized tests, error handling, assertions, test doubles, async testing, performance, vitest features, snapshot testing.
+
+---
+
+## Supabase Postgres
 
 | Priority | Category | Impact | Prefix |
 |----------|----------|--------|--------|
@@ -83,4 +96,4 @@ Reference files are named `{prefix}-{topic}.md` (e.g., `query-missing-indexes.md
 
 ---
 
-*30 reference files across 8 categories*
+*31 reference files across 9 categories*

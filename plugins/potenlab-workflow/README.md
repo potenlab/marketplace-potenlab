@@ -54,7 +54,15 @@ You should see:
   /execute-phase 5         Build Phase 5: Polish
       |
       v
+  /generate-test           Generate .test.ts from test-plan.md
+  /run-test-all            Run all tests
+  /run-test-phase          Run tests for a specific phase
+      |
+      v
   /developer               Post-completion adjustments
+      |
+      v
+  /verify-test             Sync tests after changes
 ```
 
 Need to revise plans at any point? Use `/review-plan`.
@@ -182,6 +190,89 @@ Each invocation creates a new batch (`C1`, `C2`, `C3`...) so full change history
 
 ---
 
+### `/generate-test`
+
+Generates Vitest test files from `test-plan.md` using `qa-specialist` agents.
+
+```
+/generate-test           # asks scope (all, specific feature, RLS only, CRUD only)
+/generate-test all       # generate tests for all features
+/generate-test auth      # generate tests for auth feature only
+```
+
+**Flow:**
+1. Reads `test-plan.md`, `vitest-best-practices.md`, `backend-plan.md`
+2. Generates shared test utils (`src/test-utils/supabase.ts`) if missing
+3. Spawns one `qa-specialist` per feature in parallel
+4. Each agent produces `.test.ts` files with CRUD, RLS, constraint, and edge case tests
+
+**Output:**
+```
+src/
+├── test-utils/supabase.ts                    # Shared Supabase test helpers
+├── features/{name}/api/{name}.test.ts        # Feature behavior tests
+└── tests/
+    ├── rls/{table}.test.ts                   # RLS policy tests
+    └── constraints/{table}.test.ts           # Constraint tests
+```
+
+---
+
+### `/run-test-all`
+
+Runs every Vitest test in the project and generates a structured result report.
+
+```
+/run-test-all
+```
+
+**Flow:**
+1. Discovers all `.test.ts` files across `src/features/`, `src/tests/`, `supabase/`
+2. Checks if Supabase local is running
+3. Runs `npx vitest run` with JSON reporter
+4. Parses results into `docs/test.result.json` (always replaced, never appended)
+5. Spawns `qa-specialist` to analyze any failures
+
+---
+
+### `/run-test-phase`
+
+Runs tests for a specific phase only, based on the phase-to-feature mapping in `test-plan.md`.
+
+```
+/run-test-phase          # asks which phase to run
+/run-test-phase 1        # run Phase 1 tests
+/run-test-phase auth     # run tests for auth phase/feature
+```
+
+**Flow:**
+1. Reads `test-plan.md` to map phases to features
+2. Resolves test files for the chosen phase's features
+3. Runs `npx vitest run` with file filter
+4. Parses results into `docs/test.result.json` (always replaced)
+5. Spawns `qa-specialist` to analyze any failures
+
+---
+
+### `/verify-test`
+
+Detects code changes and updates both `test-plan.md` and test files to stay in sync. Use after `/developer` or manual edits.
+
+```
+/verify-test             # auto-detects changes from changes.json + git diff
+/verify-test auth        # verify only auth feature tests
+/verify-test all         # re-verify all features
+```
+
+**Flow:**
+1. Detects changes via `changes.json` and `git diff`
+2. Compares changed source code against `test-plan.md`
+3. Updates `test-plan.md` with new/changed/removed scenarios
+4. Spawns `qa-specialist` per affected feature to edit existing test files
+5. Reports all changes made
+
+---
+
 ### `/info`
 
 Displays an overview of the plugin ecosystem.
@@ -201,6 +292,7 @@ Displays an overview of the plugin ecosystem.
 | `progress-creator` | Opus | Parse plans into structured progress.json |
 | `high-coder` | Opus | Execute complex multi-file tasks (3+ files) |
 | `small-coder` | Sonnet | Execute small isolated tasks (1-2 files) |
+| `qa-specialist` | Opus | Test generation, verification, and failure analysis |
 
 ## Generated Files
 
@@ -212,6 +304,7 @@ Displays an overview of the plugin ecosystem.
 | `docs/backend-plan.md` | `/plan` | Schema, SQL migrations, RLS policies |
 | `docs/progress.json` | `/complete-plan` | Task tracker with complexity + agent assignments |
 | `docs/changes.json` | `/developer` | Post-completion change tracking |
+| `docs/test.result.json` | `/run-test-all`, `/run-test-phase` | Test results (replaced on every run) |
 
 ## Architecture
 
@@ -232,6 +325,14 @@ progress-creator ──> progress.json
  |
  ├──> small-coder (low complexity tasks)   } parallel per task
  └──> high-coder  (high complexity tasks)  }
+ |
+ v
+qa-specialist ──> .test.ts files + test.result.json
+ |
+ ├──> /generate-test   (create tests from test-plan.md)
+ ├──> /run-test-all    (run all tests)
+ ├──> /run-test-phase  (run phase tests)
+ └──> /verify-test     (sync tests after changes)
 ```
 
 ## Project Structure (Bulletproof React)

@@ -118,6 +118,11 @@ PRD -> ui-ux-specialist -> ui-ux-plan.md
                      |                     |
                  high-coder          small-coder
               (complex tasks)      (simple tasks)
+                     |                     |
+                     +----------+----------+
+                                |
+                     qa-specialist -> .test.ts files
+                     (test generation, verification, failure analysis)
 ```
 
 ### Key Agents
@@ -130,6 +135,7 @@ PRD -> ui-ux-specialist -> ui-ux-plan.md
 | progress-creator | Parses plans into progress.json | Opus |
 | high-coder | Complex multi-file implementation | Opus |
 | small-coder | Simple single-file tasks | Sonnet |
+| qa-specialist | Test generation, verification, failure analysis | Opus |
 
 ### Key Skills
 | Skill | Trigger | What It Does |
@@ -140,3 +146,7 @@ PRD -> ui-ux-specialist -> ui-ux-plan.md
 | complete-plan | /complete-plan | Marks tasks complete in progress.json |
 | execute-phase | /execute-phase | Runs all tasks in a specific phase |
 | info | /info | Shows project status and progress |
+| generate-test | /generate-test | Generates .test.ts files from test-plan.md |
+| run-test-all | /run-test-all | Runs all Vitest tests, produces test.result.json |
+| run-test-phase | /run-test-phase | Runs tests for a specific phase |
+| verify-test | /verify-test | Syncs tests after code changes |
