@@ -1,7 +1,12 @@
-# /potenlab-workflow:hello
+---
+name: potenlab:hello
+description: Confirm potenlab-workflow is installed and active
+allowed-tools:
+  - Read
+---
 
-Respond with exactly:
+Read the VERSION file at `{{POTENLAB_HOME}}/VERSION` to get the current version. Then respond with exactly:
 
-> Potenlab Marketplace is active. Plugin **potenlab-workflow** v0.2.0 loaded successfully.
+> Potenlab Workflow is active. **potenlab-workflow** v{version} loaded successfully.
 
 Do not add anything else.
