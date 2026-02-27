@@ -1,6 +1,6 @@
 ---
 name: potenlab:generate-test
-description: Generate Vitest test files from test-plan.md
+description: Generate Vitest test files from test-plan.md into root tests/ directory
 argument-hint: "[scope]"
 allowed-tools:
   - Read
@@ -14,7 +14,7 @@ allowed-tools:
 ---
 
 <objective>
-Generate Vitest test files from `test-plan.md` by spawning potenlab-qa-specialist agents that produce behavior-driven tests against Supabase local.
+Generate Vitest test files from `test-plan.md` by spawning potenlab-qa-specialist agents that produce behavior-driven tests against Supabase local. All test files are output to the root `tests/` directory.
 </objective>
 
 <execution_context>
@@ -32,6 +32,25 @@ Use `/potenlab:generate-test` when:
 
 ---
 
+## Test Output Structure
+
+All test files go in the root `tests/` directory:
+
+```
+tests/
+├── utils/
+│   └── supabase.ts                    # Shared test utilities
+├── features/
+│   └── {name}/
+│       └── {name}.test.ts             # Feature behavior tests
+├── rls/
+│   └── {table}.test.ts               # Cross-feature RLS tests
+└── constraints/
+    └── {table}.test.ts               # Constraint enforcement tests
+```
+
+---
+
 ## How It Works
 
 ```
@@ -41,10 +60,10 @@ Use `/potenlab:generate-test` when:
   STEP 1: Get scope (all, specific features, rls-only, crud-only)
       |
       v
-  STEP 2: Read context (test-plan.md, vitest-best-practices.md, backend-plan.md, vitest.config.ts)
+  STEP 2: Read context (test-plan.md, vitest-best-practices.md, backend-plan.md)
       |
       v
-  STEP 3: Plan test file generation (group by feature/test category)
+  STEP 3: Plan test file generation + create tests/ directories
       |
       v
   STEP 4: Generate shared Supabase test utilities FIRST (if needed)
@@ -82,23 +101,32 @@ Use AskUserQuestion. Maximum **2 questions**.
 2. **references/vitest-best-practices.md** — testing rules
 3. **backend-plan.md** — schema context
 4. **vitest.config.ts** — existing config
-5. **Existing .test.ts files** — patterns and conventions
+5. **Existing tests/ files** — patterns and conventions
 
 ---
 
 ## Step 3: Plan Test File Generation
 
-Parse test-plan.md and group by feature. For each feature, identify test categories:
-- **CRUD** — insert, select, update, delete
-- **RLS** — access control per role (use `it.each`)
-- **Constraints** — NOT NULL, UNIQUE, CHECK, FK violations
-- **Edge Cases** — empty inputs, boundaries, concurrent ops
+Create the tests directory structure:
+
+```
+Bash: mkdir -p tests/utils tests/features tests/rls tests/constraints
+```
+
+Parse test-plan.md and group by feature. Map output paths:
+
+| Test Category | Output Path |
+|---------------|-------------|
+| Feature behavior | `tests/features/{name}/{name}.test.ts` |
+| Shared test utils | `tests/utils/supabase.ts` |
+| RLS (cross-feature) | `tests/rls/{table}.test.ts` |
+| Constraints | `tests/constraints/{table}.test.ts` |
 
 ---
 
 ## Step 4: Generate Shared Test Utils First (if needed)
 
-If `src/test-utils/supabase.ts` does NOT exist, spawn potenlab-qa-specialist to create it FIRST, then wait.
+If `tests/utils/supabase.ts` does NOT exist, spawn potenlab-qa-specialist to create it FIRST, then wait.
 
 ---
 
@@ -117,9 +145,10 @@ Task:
     1. references/vitest-best-practices.md
     2. [path to test-plan.md] — find "{feature_name}" section
     3. [path to backend-plan.md] — tables, RLS, constraints
-    4. src/test-utils/supabase.ts — shared helpers
+    4. tests/utils/supabase.ts — shared helpers
 
-    Write to: {output_path}
+    Write to: tests/features/{feature_name}/{feature_name}.test.ts
+    Ensure directory: mkdir -p tests/features/{feature_name}
 
     Generate ALL applicable categories:
     1. CRUD Operations
@@ -127,10 +156,12 @@ Task:
     3. Constraint Enforcement
     4. Edge Cases
 
-    Rules: AAA pattern, strict assertions (never toBeTruthy), it.each for RLS,
-    clean up in afterAll, no UI tests, no table creation.
+    Rules:
+    - Import helpers from tests/utils/supabase.ts (relative path: ../../utils/supabase)
+    - AAA pattern, strict assertions (never toBeTruthy), it.each for RLS
+    - Clean up in afterAll, no UI tests, no table creation
 
-    When done: "COMPLETED: {feature_name} | File: {output_path} | Tests: {count}"
+    When done: "COMPLETED: {feature_name} | File: tests/features/{feature_name}/{feature_name}.test.ts | Tests: {count}"
 ```
 
 **Spawn ALL feature agents in a SINGLE message.**
@@ -139,7 +170,7 @@ Task:
 
 ## Step 6: Verify & Report
 
-List generated files, test counts by category, and suggest running `npx vitest run`.
+List generated files in `tests/`, test counts by category, and suggest running `npx vitest run`.
 
 ---
 
@@ -147,11 +178,14 @@ List generated files, test counts by category, and suggest running `npx vitest r
 
 ### DO:
 - ALWAYS read test-plan.md before spawning agents
-- ALWAYS generate shared test utils FIRST if missing
+- ALWAYS create `tests/` directory structure before spawning agents
+- ALWAYS output test files to root `tests/` directory (NOT inside `src/`)
+- ALWAYS generate shared test utils at `tests/utils/supabase.ts` FIRST if missing
 - ALWAYS spawn feature test agents in a SINGLE parallel message
 - ALWAYS use potenlab-qa-specialist as the agent type
 
 ### DO NOT:
+- NEVER generate test files inside `src/` — all tests go in root `tests/`
 - NEVER generate UI component tests
 - NEVER let agents create or alter database tables
 - NEVER proceed without test-plan.md

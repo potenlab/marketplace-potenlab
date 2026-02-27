@@ -50,8 +50,7 @@ Read and apply rules from @{{POTENLAB_HOME}}/CLAUDE.md before proceeding.
 ## Step 1: Discover All Test Files
 
 ```
-Glob: src/features/**/*.test.ts
-Glob: src/tests/**/*.test.ts
+Glob: tests/**/*.test.ts
 Glob: supabase/**/*.test.ts
 ```
 

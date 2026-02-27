@@ -31,8 +31,7 @@ Do NOT use when:
       v
 +----------------------------------------------------------+
 |  STEP 1: Discover all test files                          |
-|  - src/features/**/*.test.ts                              |
-|  - src/tests/**/*.test.ts                                 |
+|  - tests/**/*.test.ts                                     |
 |  - supabase/**/*.test.ts                                  |
 +----------------------------------------------------------+
       |
@@ -77,8 +76,7 @@ Do NOT use when:
 Find every test file in the project:
 
 ```
-Glob: src/features/**/*.test.ts
-Glob: src/tests/**/*.test.ts
+Glob: tests/**/*.test.ts
 Glob: supabase/**/*.test.ts
 ```
 
@@ -94,8 +92,9 @@ Report discovery:
 
 | Directory | Files |
 |-----------|-------|
-| src/features/ | {count} |
-| src/tests/ | {count} |
+| tests/features/ | {count} |
+| tests/rls/ | {count} |
+| tests/constraints/ | {count} |
 | supabase/ | {count} |
 | **Total** | **{total}** |
 ```
@@ -192,14 +191,14 @@ Build `test.result.json` with this structure:
     "pass_rate": "91.8%"
   },
   "by_directory": {
-    "src/features": {
+    "tests/features": {
       "suites": 6,
       "tests": 50,
       "passed": 47,
       "failed": 3,
       "skipped": 0
     },
-    "src/tests": {
+    "tests/rls+constraints": {
       "suites": 3,
       "tests": 25,
       "passed": 23,
@@ -232,7 +231,7 @@ Build `test.result.json` with this structure:
   },
   "suites": [
     {
-      "file": "src/features/auth/api/auth.test.ts",
+      "file": "tests/features/auth/auth.test.ts",
       "status": "fail",
       "duration_ms": 1234,
       "tests": {
@@ -255,7 +254,7 @@ Build `test.result.json` with this structure:
       ]
     },
     {
-      "file": "src/features/orders/api/orders.test.ts",
+      "file": "tests/features/orders/orders.test.ts",
       "status": "pass",
       "duration_ms": 890,
       "tests": {
@@ -366,8 +365,9 @@ Task:
 
 | Directory | Tests | Passed | Failed | Status |
 |-----------|-------|--------|--------|--------|
-| src/features/ | {tests} | {passed} | {failed} | {pass/fail} |
-| src/tests/ | {tests} | {passed} | {failed} | {pass/fail} |
+| tests/features/ | {tests} | {passed} | {failed} | {pass/fail} |
+| tests/rls/ | {tests} | {passed} | {failed} | {pass/fail} |
+| tests/constraints/ | {tests} | {passed} | {failed} | {pass/fail} |
 | supabase/ | {tests} | {passed} | {failed} | {pass/fail} |
 
 ### Results by Phase

@@ -377,14 +377,15 @@ For each feature in the plan, categorize tests:
 
 ### Step 5: Generate Test Files
 
-For each feature, create a test file:
+For each feature, create a test file in the root `tests/` directory:
 ```
-src/features/{feature}/api/{feature}.test.ts
+tests/features/{feature}/{feature}.test.ts
 ```
 
 Or if testing shared logic:
 ```
-src/lib/{module}.test.ts
+tests/rls/{table}.test.ts
+tests/constraints/{table}.test.ts
 ```
 
 ### Step 6: File Structure per Test File
@@ -576,5 +577,5 @@ describe('[Feature] behavior', () => {
 7. **Test Both Paths** — Every feature gets success tests AND failure/error tests
 8. **Clean Up Test Data** — Every row you insert must be deleted in afterAll/afterEach
 9. **Type Everything** — Use `Database` types from `@/types/database`, no `any`
-10. **Co-locate Tests** — Place test files next to the code they test (e.g., `src/features/{name}/api/{name}.test.ts`)
+10. **Root Tests Directory** — All test files go in `tests/` at the project root (e.g., `tests/features/{name}/{name}.test.ts`), NOT inside `src/`
 </rules>

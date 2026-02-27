@@ -82,6 +82,7 @@ Creates all project plans from a PRD file.
 2. Spawns `ui-ux-specialist` — creates `docs/ui-ux-plan.md`
 3. Spawns `tech-lead-specialist` — creates `docs/dev-plan.md`
 4. Spawns `frontend-specialist` + `backend-specialist` in parallel — creates `docs/frontend-plan.md` and `docs/backend-plan.md`
+5. Spawns `qa-specialist` — creates `docs/test-plan.md`
 
 **Output:**
 ```
@@ -89,7 +90,8 @@ docs/
 ├── ui-ux-plan.md
 ├── dev-plan.md
 ├── frontend-plan.md
-└── backend-plan.md
+├── backend-plan.md
+└── test-plan.md
 ```
 
 ---
@@ -141,7 +143,7 @@ Each updated file gets a **Revision Log** documenting what changed.
 
 ### `/execute-phase`
 
-Executes all pending tasks in a specific development phase. Spawns multiple coder agents in parallel.
+Executes all pending tasks in a specific development phase using wave-based parallel execution (max 4 agents per wave).
 
 ```
 /execute-phase 0        # Foundation
@@ -154,10 +156,10 @@ Executes all pending tasks in a specific development phase. Spawns multiple code
 1. Reads `progress.json`
 2. Filters pending + unblocked tasks in the target phase
 3. Groups by complexity: `low` -> `small-coder`, `high` -> `high-coder`
-4. Spawns ALL agents in parallel (one per task)
-5. Updates `progress.json` with results
+4. Executes in waves of max 4 agents — updates `progress.json` after each wave
+5. Re-filters tasks between waves to pick up newly unblocked dependencies
 
-**Example:** If Phase 2 has 5 tasks (3 low, 2 high), it spawns 3 `small-coder` + 2 `high-coder` agents simultaneously.
+**Example:** If Phase 2 has 9 tasks, it runs 3 waves: wave 1 (4 tasks), wave 2 (4 tasks), wave 3 (1 task). Progress is updated between each wave.
 
 ---
 
@@ -202,18 +204,17 @@ Generates Vitest test files from `test-plan.md` using `qa-specialist` agents.
 
 **Flow:**
 1. Reads `test-plan.md`, `vitest-best-practices.md`, `backend-plan.md`
-2. Generates shared test utils (`src/test-utils/supabase.ts`) if missing
+2. Generates shared test utils (`tests/utils/supabase.ts`) if missing
 3. Spawns one `qa-specialist` per feature in parallel
 4. Each agent produces `.test.ts` files with CRUD, RLS, constraint, and edge case tests
 
 **Output:**
 ```
-src/
-├── test-utils/supabase.ts                    # Shared Supabase test helpers
-├── features/{name}/api/{name}.test.ts        # Feature behavior tests
-└── tests/
-    ├── rls/{table}.test.ts                   # RLS policy tests
-    └── constraints/{table}.test.ts           # Constraint tests
+tests/
+├── utils/supabase.ts                         # Shared Supabase test helpers
+├── features/{name}/{name}.test.ts            # Feature behavior tests
+├── rls/{table}.test.ts                       # RLS policy tests
+└── constraints/{table}.test.ts               # Constraint tests
 ```
 
 ---
@@ -227,7 +228,7 @@ Runs every Vitest test in the project and generates a structured result report.
 ```
 
 **Flow:**
-1. Discovers all `.test.ts` files across `src/features/`, `src/tests/`, `supabase/`
+1. Discovers all `.test.ts` files across `tests/`, `supabase/`
 2. Checks if Supabase local is running
 3. Runs `npx vitest run` with JSON reporter
 4. Parses results into `docs/test.result.json` (always replaced, never appended)
@@ -302,6 +303,7 @@ Displays an overview of the plugin ecosystem.
 | `docs/dev-plan.md` | `/plan` | Phased development checklist (single source of truth) |
 | `docs/frontend-plan.md` | `/plan` | Component specs with Bulletproof React structure |
 | `docs/backend-plan.md` | `/plan` | Schema, SQL migrations, RLS policies |
+| `docs/test-plan.md` | `/plan` | Test scenarios mapped to features, RLS, constraints |
 | `docs/progress.json` | `/complete-plan` | Task tracker with complexity + agent assignments |
 | `docs/changes.json` | `/developer` | Post-completion change tracking |
 | `docs/test.result.json` | `/run-test-all`, `/run-test-phase` | Test results (replaced on every run) |

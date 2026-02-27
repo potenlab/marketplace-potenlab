@@ -1,12 +1,12 @@
 ---
 name: execute-phase
-description: "Executes all tasks in a specific phase by spawning small-coder and high-coder agents in parallel based on progress.json complexity classification. Accepts phase number as argument (/execute-phase 3) or asks via AskUserQuestion. Spawns multiple agents simultaneously — one per task. Updates progress.json after completion. Triggers on: execute phase, run phase, build phase, develop phase, start phase."
+description: "Executes all tasks in a specific phase using wave-based parallel execution (max 4 agents per wave). Spawns small-coder and high-coder agents based on progress.json complexity. Updates progress.json after EACH wave so completed tasks immediately unblock dependents. Accepts phase number as argument (/execute-phase 3) or asks via AskUserQuestion. Triggers on: execute phase, run phase, build phase, develop phase, start phase."
 user-invocable: true
 ---
 
 # Execute Phase Skill
 
-Execute all pending tasks in a specific development phase by spawning the right coder agents in parallel.
+Execute all pending tasks in a specific development phase using **wave-based parallel execution** (max 4 agents per wave).
 
 ---
 
@@ -16,53 +16,41 @@ Execute all pending tasks in a specific development phase by spawning the right 
 /execute-phase [phase_number]
       |
       v
-+----------------------------------------------------------+
-|  STEP 1: Get phase number                                 |
-|  - From argument: /execute-phase 3                        |
-|  - OR from AskUserQuestion if not provided                |
-+----------------------------------------------------------+
+  STEP 1: Get phase number (from arg or AskUserQuestion)
       |
       v
-+----------------------------------------------------------+
-|  STEP 2: Read progress.json                               |
-|  - Find the target phase                                  |
-|  - Filter tasks: status === "pending"                     |
-|  - Filter tasks: blocked_by is empty (not blocked)        |
-+----------------------------------------------------------+
+  STEP 2: Read progress.json, filter executable tasks
       |
       v
-+----------------------------------------------------------+
-|  STEP 3: Group tasks by agent type                        |
-|                                                           |
-|  complexity: "low"  → small-coder (Sonnet — fast)         |
-|  complexity: "high" → high-coder  (Opus — deep)           |
-+----------------------------------------------------------+
+  STEP 3: Group tasks by complexity → assign agent types → plan waves
       |
       v
-+----------------------------------------------------------+
-|  STEP 4: Spawn ALL agents in PARALLEL                     |
-|                                                           |
-|  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐       |
-|  │ small-coder │  │ small-coder │  │ high-coder  │       |
-|  │  Task 2.1   │  │  Task 2.3   │  │  Task 2.2   │       |
-|  └─────────────┘  └─────────────┘  └─────────────┘       |
-|                                                           |
-|  One agent per task — all run simultaneously              |
-+----------------------------------------------------------+
+  STEP 4: WAVE LOOP (max 4 agents per wave)
+      |
+      |   ┌───────────────────────────────────────────┐
+      |   │  4a. Take next batch (up to 4 tasks)      │
+      |   │  4b. Spawn agents in parallel (1 message)  │
+      |   │  4c. Wait for all agents in wave           │
+      |   │  4d. Update progress.json IMMEDIATELY      │
+      |   │  4e. Re-filter: find newly unblocked tasks │
+      |   │  4f. If more tasks → loop back to 4a       │
+      |   └───────────────────────────────────────────┘
       |
       v
-+----------------------------------------------------------+
-|  STEP 5: Update progress.json                             |
-|  - Mark completed tasks as "completed"                    |
-|  - Update phase progress ("3/5")                          |
-|  - Recalculate summary counts                             |
-|  - Remove completed IDs from blocked_by arrays            |
-+----------------------------------------------------------+
-      |
-      v
-+----------------------------------------------------------+
-|  STEP 6: Report results                                   |
-+----------------------------------------------------------+
+  STEP 5: Final report (all waves combined)
+```
+
+### Why Waves?
+
+```
+BEFORE (all at once):
+  10 agents spawn → context limit reached → phase fails
+
+AFTER (wave-based, max 4):
+  Wave 1: [agent][agent][agent][agent] → update progress.json
+  Wave 2: [agent][agent][agent]        → update progress.json (includes newly unblocked)
+  Wave 3: [agent][agent][agent]        → update progress.json
+  Done. All tasks completed across 3 manageable waves.
 ```
 
 ---
@@ -176,16 +164,23 @@ These tasks will be skipped. Only unblocked pending tasks will be executed.
 
 ---
 
-## Step 3: Group Tasks by Agent Type
+## Step 3: Group Tasks by Agent Type and Plan Waves
 
 Split `executable_tasks` into two groups based on progress.json classification:
 
 ```
 small_tasks = executable_tasks.filter(t => t.complexity === "low")
-  → Each spawns a small-coder agent
+  → Each spawns a potenlab-small-coder agent
 
 high_tasks = executable_tasks.filter(t => t.complexity === "high")
-  → Each spawns a high-coder agent
+  → Each spawns a potenlab-high-coder agent
+```
+
+### Combine and chunk into waves of max 4:
+
+```
+all_executable = [...high_tasks, ...small_tasks]  // high-complexity first (longer running)
+total_waves = Math.ceil(all_executable.length / 4)
 ```
 
 ### Report the execution plan before spawning:
@@ -193,31 +188,78 @@ high_tasks = executable_tasks.filter(t => t.complexity === "high")
 ```markdown
 ### Execution Plan — Phase {N}: {name}
 
-| Task | Complexity | Agent | Files | Reason |
-|------|-----------|-------|-------|--------|
-| {id} {name} | low | small-coder | {estimated_files} | {complexity_reason} |
-| {id} {name} | high | high-coder | {estimated_files} | {complexity_reason} |
+| Task | Complexity | Agent | Files | Reason | Wave |
+|------|-----------|-------|-------|--------|------|
+| {id} {name} | high | potenlab-high-coder | {estimated_files} | {complexity_reason} | 1 |
+| {id} {name} | low | potenlab-small-coder | {estimated_files} | {complexity_reason} | 1 |
+| {id} {name} | low | potenlab-small-coder | {estimated_files} | {complexity_reason} | 1 |
+| {id} {name} | low | potenlab-small-coder | {estimated_files} | {complexity_reason} | 1 |
+| {id} {name} | low | potenlab-small-coder | {estimated_files} | {complexity_reason} | 2 |
 
-**Total agents to spawn:** {count}
-- small-coder: {small_count}
-- high-coder: {high_count}
+**Total tasks:** {count} across {wave_count} wave(s)
+**Max parallel agents per wave:** 4
+- potenlab-small-coder: {small_count}
+- potenlab-high-coder: {high_count}
 ```
 
 ---
 
-## Step 4: Spawn ALL Agents in PARALLEL
+## Step 4: Wave-Based Parallel Execution
 
-**CRITICAL: Spawn ALL agents in a SINGLE message with multiple Task tool calls.**
+**CRITICAL: Max 4 agents per wave. Update progress.json AFTER EACH wave. Re-filter between waves.**
 
-Every task gets its own agent. Multiple small-coders and multiple high-coders run simultaneously.
+### 4.0 Initialize wave tracking
 
-### Agent Prompt Template — small-coder
+```
+all_wave_results = []       // accumulate results across all waves
+wave_number = 0
+```
 
-For EACH task where `complexity === "low"`:
+### 4.1 Wave Loop
+
+**Repeat the following until no more executable tasks remain:**
+
+#### 4.1a — Filter executable tasks (re-read progress.json each iteration)
+
+```
+Read: docs/progress.json   // MUST re-read — previous wave may have changed it
+
+executable_tasks = phase.tasks.filter(task =>
+  task.status === "pending" AND
+  task.blocked_by.length === 0
+)
+
+IF executable_tasks is empty → EXIT loop, go to Step 5
+```
+
+#### 4.1b — Take the next batch (max 4)
+
+```
+wave_number += 1
+wave_batch = executable_tasks.slice(0, 4)   // take up to 4
+```
+
+#### 4.1c — Report wave start
+
+```markdown
+### Wave {wave_number} — Spawning {wave_batch.length} agent(s)
+
+| Task | Agent |
+|------|-------|
+| {id} {name} | {agent_type} |
+```
+
+#### 4.1d — Spawn wave agents in PARALLEL (single message, max 4 Task calls)
+
+Spawn all agents for THIS wave in ONE message with multiple Task tool calls:
+
+**Agent Prompt Template — potenlab-small-coder**
+
+For EACH task in wave where `complexity === "low"`:
 
 ```
 Task:
-  subagent_type: small-coder
+  subagent_type: potenlab-small-coder
   description: "Task {task.id}: {task.name}"
   prompt: |
     Execute task {task.id}: {task.name}
@@ -247,20 +289,20 @@ Task:
 
     IMPORTANT:
     - This is a SMALL task (1-2 files). If it seems bigger, report back and do NOT implement.
-    - Do NOT update progress.json — the orchestrator handles that.
+    - Do NOT update progress.json — the orchestrator handles that after each wave.
     - Follow existing code patterns and project structure.
 
     When done, return: "COMPLETED: {task.id} — {task.name} | Files: [list of files created/modified]"
     If the task is blocked or too large, return: "BLOCKED: {task.id} — {reason}"
 ```
 
-### Agent Prompt Template — high-coder
+**Agent Prompt Template — potenlab-high-coder**
 
-For EACH task where `complexity === "high"`:
+For EACH task in wave where `complexity === "high"`:
 
 ```
 Task:
-  subagent_type: high-coder
+  subagent_type: potenlab-high-coder
   description: "Task {task.id}: {task.name}"
   prompt: |
     Execute task {task.id}: {task.name}
@@ -293,7 +335,7 @@ Task:
 
     IMPORTANT:
     - This is a COMPLEX task (3+ files, cross-file coordination). Take your time.
-    - Do NOT update progress.json — the orchestrator handles that.
+    - Do NOT update progress.json — the orchestrator handles that after each wave.
     - Handle all states: loading, error, empty.
     - Follow Bulletproof React structure strictly.
 
@@ -301,127 +343,162 @@ Task:
     If the task is blocked or has issues, return: "BLOCKED: {task.id} — {reason}"
 ```
 
-### Parallel Execution Example
-
-For a phase with 5 tasks (3 low, 2 high), spawn 5 agents in ONE message:
+**Example — spawning a wave of 4:**
 
 ```
-[Single message with 5 Task tool calls]
+[Single message with 4 Task tool calls]
 
-Task 1: small-coder → Task 2.1 (design tokens)
-Task 2: small-coder → Task 2.3 (button component)
-Task 3: small-coder → Task 2.5 (input component)
-Task 4: high-coder  → Task 2.2 (navigation system)
-Task 5: high-coder  → Task 2.4 (form layout system)
+Task 1: potenlab-high-coder  → Task 2.1 (navigation system)
+Task 2: potenlab-small-coder → Task 2.2 (design tokens)
+Task 3: potenlab-small-coder → Task 2.3 (button component)
+Task 4: potenlab-small-coder → Task 2.4 (input component)
 ```
 
-**Wait for ALL agents to complete before proceeding to Step 5.**
+**Wait for ALL agents in this wave to complete before continuing.**
+
+#### 4.1e — Update progress.json IMMEDIATELY after wave completes
+
+**This is the key difference from the old approach.** After EACH wave:
+
+1. **Read** current progress.json (fresh read)
+2. **Process** agent results from this wave:
+   ```
+   IF result starts with "COMPLETED:"
+     → Set task.status = "completed"
+
+   IF result starts with "BLOCKED:"
+     → Set task.status = "blocked"
+     → Add reason to task.notes
+   ```
+3. **Remove** completed task IDs from ALL `blocked_by` arrays across ALL phases:
+   ```
+   for each completed_task_id in this wave:
+     for each phase in progress.json:
+       for each task in phase.tasks:
+         task.blocked_by = task.blocked_by.filter(id => id !== completed_task_id)
+   ```
+4. **Update** phase progress count:
+   ```
+   completed_count = phase.tasks.filter(t => t.status === "completed").length
+   phase.progress = "{completed_count}/{total_count}"
+
+   if all tasks completed → phase.status = "completed"
+   else → phase.status = "in_progress"
+   ```
+5. **Recalculate** summary counts:
+   ```
+   summary.total = count of ALL tasks across ALL phases
+   summary.completed = count where status === "completed"
+   summary.in_progress = count where status === "in_progress"
+   summary.pending = count where status === "pending"
+   summary.blocked = count where status === "blocked"
+   ```
+6. **Write** updated progress.json:
+   ```
+   Write: docs/progress.json
+   ```
+
+**WHY:** Updating after each wave means tasks completed in Wave 1 immediately unblock tasks for Wave 2. No waiting until the entire phase finishes.
+
+#### 4.1f — Collect wave results and report wave completion
+
+```
+all_wave_results.push(...wave_results)
+```
+
+Report wave summary inline:
+```markdown
+Wave {N} complete: {completed}/{total} tasks succeeded. progress.json updated.
+```
+
+#### 4.1g — Loop back to 4.1a
+
+Go back to step 4.1a to re-filter executable tasks. The progress.json update in 4.1e may have:
+- Unblocked new tasks within this phase (dependencies resolved)
+- Changed the set of executable tasks
+
+**If no more executable tasks exist → exit the loop and proceed to Step 5.**
+
+### Wave Execution Example
+
+Phase has 10 tasks: 6 pending (unblocked), 4 blocked by others:
+
+```
+Wave 1 (4 agents):
+  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+  │ high-coder  │  │ small-coder │  │ small-coder │  │ small-coder │
+  │  Task 2.1   │  │  Task 2.2   │  │  Task 2.3   │  │  Task 2.4   │
+  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘
+         └────────────────┴────────────────┴────────────────┘
+                                   │
+                      Update progress.json ← IMMEDIATE
+                      (2.1, 2.2, 2.3, 2.4 now "completed")
+                      (tasks blocked_by these IDs → unblocked)
+                                   │
+                                   v
+Wave 2 (2 remaining + 2 newly unblocked = 4 agents):
+  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+  │ small-coder │  │ high-coder  │  │ small-coder │  │ small-coder │
+  │  Task 2.5   │  │  Task 2.6   │  │  Task 2.7*  │  │  Task 2.8*  │
+  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘
+         └────────────────┴────────────────┴────────────────┘
+                                   │                    * = was blocked,
+                      Update progress.json    now unblocked by Wave 1
+                                   │
+                                   v
+Wave 3 (2 remaining newly unblocked):
+  ┌─────────────┐  ┌─────────────┐
+  │ small-coder │  │ high-coder  │
+  │  Task 2.9*  │  │  Task 2.10* │
+  └──────┬──────┘  └──────┬──────┘
+         └────────────────┘
+                  │
+     Update progress.json
+                  │
+                  v
+       All tasks done → Step 5
+```
 
 ---
 
-## Step 5: Update progress.json
+## Step 5: Final Report (All Waves Combined)
 
-After all agents complete, update progress.json:
-
-### 5.1 Read current progress.json
-
-```
-Read: docs/progress.json
-```
-
-### 5.2 Process agent results
-
-For each agent that returned:
-
-```
-IF result starts with "COMPLETED:"
-  → Set task.status = "completed"
-  → Add to completed_tasks list
-
-IF result starts with "BLOCKED:"
-  → Set task.status = "blocked"
-  → Add the reason to task.notes
-  → Add to blocked_tasks list
-```
-
-### 5.3 Update blocked_by arrays
-
-For every completed task ID, remove it from ALL `blocked_by` arrays across ALL phases:
-
-```
-for each completed_task_id:
-  for each phase in progress.json:
-    for each task in phase.tasks:
-      task.blocked_by = task.blocked_by.filter(id => id !== completed_task_id)
-```
-
-### 5.4 Update phase progress
-
-```
-completed_count = phase.tasks.filter(t => t.status === "completed").length
-total_count = phase.tasks.length
-phase.progress = "{completed_count}/{total_count}"
-
-if all tasks completed → phase.status = "completed"
-if any task in_progress → phase.status = "in_progress"
-if any task blocked and none in_progress → phase.status = "blocked"
-```
-
-### 5.5 Recalculate summary
-
-```
-summary.total = count of ALL tasks across ALL phases
-summary.completed = count where status === "completed"
-summary.in_progress = count where status === "in_progress"
-summary.pending = count where status === "pending"
-summary.blocked = count where status === "blocked"
-```
-
-### 5.6 Write updated progress.json
-
-```
-Write: docs/progress.json
-```
-
----
-
-## Step 6: Report Results
+After the wave loop exits (no more executable tasks), report combined results:
 
 ```markdown
 ## Phase {N}: {name} — Execution Complete
 
-### Results
+### Results by Wave
 
+#### Wave 1
 | Task | Agent | Status | Files |
 |------|-------|--------|-------|
-| {id} {name} | small-coder | Completed | {files list} |
-| {id} {name} | high-coder | Completed | {files list} |
-| {id} {name} | small-coder | Blocked | {reason} |
+| {id} {name} | potenlab-small-coder | Completed | {files list} |
+| {id} {name} | potenlab-high-coder | Completed | {files list} |
+
+#### Wave 2
+| Task | Agent | Status | Files |
+|------|-------|--------|-------|
+| {id} {name} | potenlab-small-coder | Completed | {files list} |
+| {id} {name} | potenlab-small-coder | Blocked | {reason} |
 
 ### Summary
 
 | Metric | Count |
 |--------|-------|
-| Tasks executed | {count} |
+| Total waves | {wave_count} |
+| Total tasks executed | {count} |
 | Completed | {completed_count} |
 | Blocked | {blocked_count} |
-| Agents spawned | {total_agents} |
-| small-coder | {small_count} |
-| high-coder | {high_count} |
+| Total agents spawned | {total_agents} |
+| potenlab-small-coder | {small_count} |
+| potenlab-high-coder | {high_count} |
 
 ### Phase Progress
 
-```
 Phase {N}: {completed}/{total} tasks complete
-```
 
-### progress.json Updated
-
-- Completed tasks marked as "completed"
-- blocked_by arrays updated across all phases
-- Summary counts recalculated
-
-### Newly Unblocked Tasks
+### Newly Unblocked Tasks (across all phases)
 
 | Task | Phase | Was Blocked By |
 |------|-------|---------------|
@@ -430,8 +507,8 @@ Phase {N}: {completed}/{total} tasks complete
 ### Next Steps
 
 1. Review the implemented code for each completed task
-2. Run `/execute-phase {next_phase}` to continue with the next phase
-3. If any tasks were blocked, resolve dependencies and re-run this phase
+2. Run `/execute-phase {N}` again if any tasks remain pending
+3. Run `/execute-phase {next_phase}` to continue with the next phase
 ```
 
 ---
@@ -453,8 +530,8 @@ Show task statuses. Suggest next phase or show blocked reasons.
 ```
 1. Mark that specific task as still "pending" (don't mark as completed)
 2. Report which agent failed and for which task
-3. Other agents' results are still valid — process them normally
-4. Suggest re-running /execute-phase for the same phase to retry failed tasks
+3. Other agents' results in this wave are still valid — process them normally
+4. The task will be retried in the next wave (or next /execute-phase run)
 ```
 
 ### Agent reports BLOCKED
@@ -462,7 +539,7 @@ Show task statuses. Suggest next phase or show blocked reasons.
 1. Mark task as "blocked" in progress.json
 2. Add the reason to task.notes
 3. Report to user which task was blocked and why
-4. Suggest resolving the blocker first
+4. Continue with next wave — don't stop the entire phase
 ```
 
 ### All tasks in phase are blocked
@@ -479,22 +556,25 @@ Suggest running the blocking phase first.
 ### DO:
 - ALWAYS read progress.json before spawning any agents
 - ALWAYS check `blocked_by` is empty before including a task
-- ALWAYS spawn ALL executable tasks in ONE message (maximum parallelism)
-- ALWAYS use small-coder for `complexity: "low"` and high-coder for `complexity: "high"`
-- ALWAYS update progress.json after all agents complete
-- ALWAYS remove completed task IDs from blocked_by arrays across ALL phases
+- ALWAYS limit each wave to a maximum of 4 agents
+- ALWAYS update progress.json AFTER EACH WAVE (not after the entire phase)
+- ALWAYS re-read progress.json and re-filter executable tasks between waves
+- ALWAYS use potenlab-small-coder for `complexity: "low"` and potenlab-high-coder for `complexity: "high"`
+- ALWAYS remove completed task IDs from blocked_by arrays across ALL phases after each wave
 - ALWAYS report newly unblocked tasks so the user knows what's available next
 - ALWAYS ask for phase number via AskUserQuestion if not provided in arguments
 
 ### DO NOT:
+- NEVER spawn more than 4 agents in a single wave
 - NEVER execute tasks where `blocked_by` is non-empty
 - NEVER execute tasks where `status` is already `"completed"`
-- NEVER spawn a high-coder for a low-complexity task (wastes resources)
-- NEVER spawn a small-coder for a high-complexity task (will fail or produce poor results)
-- NEVER let agents update progress.json — only the orchestrator does that
+- NEVER spawn a potenlab-high-coder for a low-complexity task (wastes resources)
+- NEVER spawn a potenlab-small-coder for a high-complexity task (will fail or produce poor results)
+- NEVER let agents update progress.json — only the orchestrator does that (after each wave)
 - NEVER proceed without progress.json
 - NEVER skip reporting blocked tasks — the user needs to know
 - NEVER assume a phase number — always get it from user arguments or AskUserQuestion
+- NEVER wait until the entire phase finishes to update progress.json — update after EACH wave
 
 ---
 
@@ -504,9 +584,12 @@ Suggest running the blocking phase first.
 - [ ] progress.json read and parsed
 - [ ] Target phase found
 - [ ] Tasks filtered: pending + not blocked
-- [ ] Tasks grouped by complexity (low → small-coder, high → high-coder)
-- [ ] Execution plan reported to user
-- [ ] ALL agents spawned in a single parallel message
-- [ ] All agent results collected
-- [ ] progress.json updated (statuses, blocked_by, progress, summary)
-- [ ] Results reported with newly unblocked tasks
+- [ ] Tasks grouped by complexity (low → potenlab-small-coder, high → potenlab-high-coder)
+- [ ] Execution plan reported to user (with wave assignments)
+- [ ] Wave loop started
+- [ ] Each wave spawns max 4 agents in a single parallel message
+- [ ] progress.json updated IMMEDIATELY after each wave completes
+- [ ] blocked_by arrays cleared for completed tasks (across ALL phases)
+- [ ] Executable tasks re-filtered between waves (picks up newly unblocked)
+- [ ] Final report shows results grouped by wave
+- [ ] Newly unblocked tasks reported

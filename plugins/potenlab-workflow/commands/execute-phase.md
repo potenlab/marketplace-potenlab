@@ -1,6 +1,6 @@
 ---
 name: potenlab:execute-phase
-description: Execute all tasks in a phase with parallel coder agents
+description: Execute all tasks in a phase with wave-based parallel coder agents (max 4 per wave)
 argument-hint: "<phase-number>"
 allowed-tools:
   - Read
@@ -14,7 +14,7 @@ allowed-tools:
 ---
 
 <objective>
-Execute all pending tasks in a specific development phase by spawning the right coder agents (potenlab-small-coder / potenlab-high-coder) in parallel based on progress.json complexity classification.
+Execute all pending tasks in a specific development phase using wave-based parallel execution (max 4 agents per wave). Spawns potenlab-small-coder / potenlab-high-coder agents based on progress.json complexity classification. Updates progress.json after EACH wave so completed tasks immediately unblock dependents.
 </objective>
 
 <execution_context>
@@ -35,16 +35,21 @@ Read and apply rules from @{{POTENLAB_HOME}}/CLAUDE.md before proceeding.
   STEP 2: Read progress.json, filter executable tasks
       |
       v
-  STEP 3: Group tasks by complexity (low → potenlab-small-coder, high → potenlab-high-coder)
+  STEP 3: Group tasks by complexity → plan waves (max 4 per wave)
       |
       v
-  STEP 4: Spawn ALL agents in PARALLEL (one per task)
+  STEP 4: WAVE LOOP
+      |   ┌──────────────────────────────────────────────┐
+      |   │  4a. Re-read progress.json, filter tasks      │
+      |   │  4b. Take next batch (up to 4 tasks)          │
+      |   │  4c. Spawn agents in parallel (1 message)     │
+      |   │  4d. Wait for all agents in wave               │
+      |   │  4e. Update progress.json IMMEDIATELY          │
+      |   │  4f. If more executable tasks → loop to 4a     │
+      |   └──────────────────────────────────────────────┘
       |
       v
-  STEP 5: Update progress.json with results
-      |
-      v
-  STEP 6: Report results
+  STEP 5: Final report (all waves combined)
 ```
 
 ---
@@ -115,7 +120,7 @@ executable_tasks = phase.tasks.filter(task =>
 
 ---
 
-## Step 3: Group Tasks by Agent Type
+## Step 3: Group Tasks by Agent Type and Plan Waves
 
 Split `executable_tasks` into two groups based on progress.json classification:
 
@@ -127,123 +132,66 @@ high_tasks = executable_tasks.filter(t => t.complexity === "high")
   → Each spawns a potenlab-high-coder agent
 ```
 
-Report the execution plan before spawning.
+Combine and chunk into waves of max 4. Report the execution plan before spawning.
 
 ---
 
-## Step 4: Spawn ALL Agents in PARALLEL
+## Step 4: Wave-Based Parallel Execution
 
-**CRITICAL: Spawn ALL agents in a SINGLE message with multiple Task tool calls.**
+**CRITICAL: Max 4 agents per wave. Update progress.json AFTER EACH wave. Re-filter between waves.**
 
-Every task gets its own agent. Multiple potenlab-small-coders and multiple potenlab-high-coders run simultaneously.
+### Wave Loop
 
-### Agent Prompt Template — potenlab-small-coder
+Repeat until no more executable tasks:
 
-For EACH task where `complexity === "low"`:
+1. **Re-read** progress.json (previous wave may have changed it)
+2. **Filter** executable tasks (pending + unblocked)
+3. **Take** up to 4 tasks for this wave
+4. **Spawn** agents in ONE message (max 4 Task tool calls)
+   - `complexity: "low"` → potenlab-small-coder
+   - `complexity: "high"` → potenlab-high-coder
+5. **Wait** for all agents in this wave to complete
+6. **Update progress.json IMMEDIATELY:**
+   - Mark completed/blocked tasks
+   - Remove completed task IDs from ALL `blocked_by` arrays across ALL phases
+   - Update phase progress count
+   - Recalculate summary counts
+   - Write updated progress.json
+7. **Loop** back to step 1 (newly unblocked tasks may now be executable)
 
+### Agent Prompt Templates
+
+**potenlab-small-coder** (for `complexity === "low"`):
 ```
 Task:
   subagent_type: potenlab-small-coder
   description: "Task {task.id}: {task.name}"
   prompt: |
     Execute task {task.id}: {task.name}
-
-    Read ALL plan files first (MANDATORY):
-    - docs/dev-plan.md (single source of truth — find task {task.id})
-    - docs/frontend-plan.md (component specs if frontend task)
-    - docs/backend-plan.md (schema specs if backend task)
-    - docs/ui-ux-plan.md (design context)
-    - docs/progress.json (task details and dependencies)
-
-    Task details from progress.json:
-    - ID: {task.id}
-    - Name: {task.name}
-    - Domain: {task.domain}
-    - Output files: {task.output}
-    - Verify steps: {task.verify}
-    - Notes: {task.notes}
-
-    Instructions:
-    1. Read ALL plans to understand full project context
-    2. Find task {task.id} in dev-plan.md for Output, Behavior, Verify details
-    3. Check the specialist plan for detailed specs
-    4. Check existing code to understand what already exists
-    5. Implement the task — write clean, minimal code
-    6. Verify against the Verify steps from dev-plan.md
-
-    IMPORTANT:
-    - This is a SMALL task (1-2 files). If it seems bigger, report back and do NOT implement.
-    - Do NOT update progress.json — the orchestrator handles that.
-
-    When done, return: "COMPLETED: {task.id} — {task.name} | Files: [list]"
-    If blocked or too large, return: "BLOCKED: {task.id} — {reason}"
+    [Read all plans, implement small task, verify]
+    Do NOT update progress.json — orchestrator handles that after each wave.
+    Return: "COMPLETED: {task.id} — {task.name} | Files: [list]"
+    Or: "BLOCKED: {task.id} — {reason}"
 ```
 
-### Agent Prompt Template — potenlab-high-coder
-
-For EACH task where `complexity === "high"`:
-
+**potenlab-high-coder** (for `complexity === "high"`):
 ```
 Task:
   subagent_type: potenlab-high-coder
   description: "Task {task.id}: {task.name}"
   prompt: |
     Execute task {task.id}: {task.name}
-
-    Read ALL plan files first (MANDATORY):
-    - docs/dev-plan.md (single source of truth — find task {task.id})
-    - docs/frontend-plan.md (component specs if frontend task)
-    - docs/backend-plan.md (schema specs if backend task)
-    - docs/ui-ux-plan.md (design context)
-    - docs/progress.json (task details and dependencies)
-
-    Task details from progress.json:
-    - ID: {task.id}
-    - Name: {task.name}
-    - Domain: {task.domain}
-    - Estimated files: {task.estimated_files}
-    - Output files: {task.output}
-    - Verify steps: {task.verify}
-    - Notes: {task.notes}
-
-    Instructions:
-    1. Read ALL plans to understand full project context
-    2. Find task {task.id} in dev-plan.md for Output, Behavior, Verify details
-    3. Check the specialist plan for detailed specs
-    4. Check existing code to understand what already exists
-    5. Plan the implementation order: Types → API → Logic → Components → Integration
-    6. Implement all files for this task
-    7. Self-review: check types, imports, circular deps, cross-feature leaks
-    8. Verify against the Verify steps from dev-plan.md
-
-    IMPORTANT:
-    - This is a COMPLEX task (3+ files, cross-file coordination). Take your time.
-    - Do NOT update progress.json — the orchestrator handles that.
-
-    When done, return: "COMPLETED: {task.id} — {task.name} | Files: [list]"
-    If blocked, return: "BLOCKED: {task.id} — {reason}"
+    [Read all plans, implement complex task, self-review, verify]
+    Do NOT update progress.json — orchestrator handles that after each wave.
+    Return: "COMPLETED: {task.id} — {task.name} | Files: [list]"
+    Or: "BLOCKED: {task.id} — {reason}"
 ```
 
-**Wait for ALL agents to complete before proceeding to Step 5.**
-
 ---
 
-## Step 5: Update progress.json
+## Step 5: Final Report
 
-After all agents complete, update progress.json:
-
-1. Mark completed tasks as `"completed"`
-2. Mark blocked tasks as `"blocked"` with reason in notes
-3. Remove completed task IDs from ALL `blocked_by` arrays across ALL phases
-4. Update phase progress count
-5. Recalculate summary counts
-6. Write updated progress.json
-
----
-
-## Step 6: Report Results
-
-Report with a table of results per task, summary counts, phase progress, newly unblocked tasks, and next steps.
+Report with results grouped by wave, summary counts, phase progress, newly unblocked tasks, and next steps.
 
 ---
 
@@ -252,17 +200,17 @@ Report with a table of results per task, summary counts, phase progress, newly u
 ### DO:
 - ALWAYS read progress.json before spawning any agents
 - ALWAYS check `blocked_by` is empty before including a task
-- ALWAYS spawn ALL executable tasks in ONE message (maximum parallelism)
+- ALWAYS limit each wave to a maximum of 4 agents
+- ALWAYS update progress.json AFTER EACH WAVE (not after the entire phase)
+- ALWAYS re-read progress.json and re-filter between waves
 - ALWAYS use potenlab-small-coder for `complexity: "low"` and potenlab-high-coder for `complexity: "high"`
-- ALWAYS update progress.json after all agents complete
-- ALWAYS remove completed task IDs from blocked_by arrays across ALL phases
+- ALWAYS remove completed task IDs from blocked_by arrays across ALL phases after each wave
 
 ### DO NOT:
+- NEVER spawn more than 4 agents in a single wave
 - NEVER execute tasks where `blocked_by` is non-empty
 - NEVER execute tasks where `status` is already `"completed"`
-- NEVER spawn a potenlab-high-coder for a low-complexity task
-- NEVER spawn a potenlab-small-coder for a high-complexity task
-- NEVER let agents update progress.json — only the orchestrator does that
-- NEVER proceed without progress.json
+- NEVER let agents update progress.json — only the orchestrator does that (after each wave)
+- NEVER wait until the entire phase finishes to update progress.json — update after EACH wave
 
 </process>
