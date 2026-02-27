@@ -203,10 +203,9 @@ Read: src/features/{feature}/hooks/{file}.ts
 ### 2.5 Read existing test files for affected features
 
 ```
-Glob: src/features/{feature}/**/*.test.ts
-Glob: src/tests/**/{feature}*.test.ts
-Glob: src/tests/rls/{feature}*.test.ts
-Glob: src/tests/constraints/{feature}*.test.ts
+Glob: tests/features/{feature}/**/*.test.ts
+Glob: tests/rls/{feature}*.test.ts
+Glob: tests/constraints/{feature}*.test.ts
 Glob: supabase/**/{feature}*.test.ts
 ```
 
@@ -320,7 +319,7 @@ Task:
     3. Read: [path to backend-plan.md]
        Find tables, RLS policies, and constraints for "{feature_name}".
 
-    4. Read: src/test-utils/supabase.ts
+    4. Read: tests/utils/supabase.ts
        Use shared helpers: adminClient, createAuthClient, createTestUser, etc.
 
     5. Read the CHANGED source files:
@@ -354,12 +353,12 @@ Task:
     === OUTPUT PATHS ===
 
     Edit existing files:
-    - src/features/{feature_name}/api/{feature_name}.test.ts
-    - src/tests/rls/{feature_name}*.test.ts
-    - src/tests/constraints/{feature_name}*.test.ts
+    - tests/features/{feature_name}/{feature_name}.test.ts
+    - tests/rls/{feature_name}*.test.ts
+    - tests/constraints/{feature_name}*.test.ts
 
     Create new files ONLY if needed:
-    - src/features/{feature_name}/api/{new_area}.test.ts
+    - tests/features/{feature_name}/{new_area}.test.ts
 
     === RULES ===
 
@@ -396,12 +395,12 @@ Task:
   subagent_type: qa-specialist
   description: "Update shared test utilities"
   prompt: |
-    Update src/test-utils/supabase.ts to support new schema changes.
+    Update tests/utils/supabase.ts to support new schema changes.
 
     Changes detected:
     {schema_changes}
 
-    Read: src/test-utils/supabase.ts
+    Read: tests/utils/supabase.ts
     Read: references/vitest-best-practices.md
 
     Edit the file to add any new helper functions needed.
@@ -490,7 +489,7 @@ Spawn qa-specialist in GENERATE mode (like /generate-test) for that feature only
 ### Shared test utils missing
 ```
 Warn and generate first:
-"src/test-utils/supabase.ts not found. Generating shared utilities first."
+"tests/utils/supabase.ts not found. Generating shared utilities first."
 
 Spawn qa-specialist to create test utils (same as /generate-test Step 4.1).
 Wait for completion before spawning feature agents.

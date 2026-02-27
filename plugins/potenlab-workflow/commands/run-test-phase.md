@@ -82,10 +82,9 @@ Build phase list dynamically from test-plan.md, then AskUserQuestion. Maximum **
 Map phase → features → test files:
 
 ```
-Glob: src/features/{feature}/**/*.test.ts
-Glob: src/tests/**/{feature}*.test.ts
-Glob: src/tests/rls/{feature}*.test.ts
-Glob: src/tests/constraints/{feature}*.test.ts
+Glob: tests/features/{feature}/**/*.test.ts
+Glob: tests/rls/{feature}*.test.ts
+Glob: tests/constraints/{feature}*.test.ts
 ```
 
 If no test files found for the chosen phase, STOP and suggest `/potenlab:generate-test`.

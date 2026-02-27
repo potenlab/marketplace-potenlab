@@ -112,6 +112,9 @@ PRD -> ui-ux-specialist -> ui-ux-plan.md
                      |                     |
                      +----------+----------+
                                 |
+                     qa-specialist -> test-plan.md
+                     (test scenario planning from dev-plan + backend-plan)
+                                |
                      progress-creator -> progress.json
                                 |
                      +----------+----------+
@@ -122,7 +125,7 @@ PRD -> ui-ux-specialist -> ui-ux-plan.md
                      +----------+----------+
                                 |
                      qa-specialist -> .test.ts files
-                     (test generation, verification, failure analysis)
+                     (test generation from test-plan.md)
 ```
 
 ### Key Agents
@@ -135,16 +138,16 @@ PRD -> ui-ux-specialist -> ui-ux-plan.md
 | progress-creator | Parses plans into progress.json | Opus |
 | high-coder | Complex multi-file implementation | Opus |
 | small-coder | Simple single-file tasks | Sonnet |
-| qa-specialist | Test generation, verification, failure analysis | Opus |
+| qa-specialist | Test plan creation, test generation, verification | Opus |
 
 ### Key Skills
 | Skill | Trigger | What It Does |
 |-------|---------|-------------|
-| plan-project | /plan-project | Full planning workflow (all specialists sequentially) |
+| plan-project | /plan-project | Full planning workflow (specialists + test plan generation) |
 | developer | /developer | Executes tasks from progress.json |
 | review-plan | /review-plan | Reviews and adjusts existing plans |
 | complete-plan | /complete-plan | Marks tasks complete in progress.json |
-| execute-phase | /execute-phase | Runs all tasks in a specific phase |
+| execute-phase | /execute-phase | Runs tasks in a phase (wave-based, max 4 agents per wave) |
 | info | /info | Shows project status and progress |
 | generate-test | /generate-test | Generates .test.ts files from test-plan.md |
 | run-test-all | /run-test-all | Runs all Vitest tests, produces test.result.json |

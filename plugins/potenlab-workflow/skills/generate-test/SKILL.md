@@ -1,12 +1,14 @@
 ---
 name: generate-test
-description: "Generates Vitest test files from test-plan.md using the qa-specialist agent. Reads the test plan and vitest best practices, then spawns qa-specialist agents to produce .test.ts files for features, shared tests, and Supabase integration tests. Tests verify behavior via database operations and RLS policies — no UI testing. Triggers on: generate test, generate tests, create tests, write tests, test generation."
+description: "Generates Vitest test files from test-plan.md using the qa-specialist agent. Reads the test plan and vitest best practices, then spawns qa-specialist agents to produce .test.ts files in the root tests/ directory for features, shared tests, and Supabase integration tests. Tests verify behavior via database operations and RLS policies — no UI testing. Triggers on: generate test, generate tests, create tests, write tests, test generation."
 user-invocable: true
 ---
 
 # Generate Test Skill
 
 Generate Vitest test files from `test-plan.md` by spawning qa-specialist agents that produce behavior-driven tests against Supabase local.
+
+**All test files are generated in the root `tests/` directory** — NOT co-located with source code.
 
 ---
 
@@ -21,6 +23,31 @@ Do NOT use when:
 - You need UI/component tests (use @testing-library/react directly)
 - You need E2E browser tests (use Playwright directly)
 - No test-plan.md exists yet (create one first)
+
+---
+
+## Test Directory Structure
+
+All generated test files go into the root `tests/` directory:
+
+```
+tests/
+├── utils/
+│   └── supabase.ts              # Shared Supabase test utilities
+├── features/
+│   ├── auth/
+│   │   └── auth.test.ts         # Auth feature behavior tests
+│   ├── orders/
+│   │   └── orders.test.ts       # Orders feature behavior tests
+│   └── users/
+│       └── users.test.ts        # Users feature behavior tests
+├── rls/
+│   ├── users.test.ts            # Cross-feature RLS tests for users table
+│   └── orders.test.ts           # Cross-feature RLS tests for orders table
+└── constraints/
+    ├── users.test.ts            # Constraint enforcement tests for users table
+    └── orders.test.ts           # Constraint enforcement tests for orders table
+```
 
 ---
 
@@ -51,7 +78,7 @@ Do NOT use when:
 +----------------------------------------------------------+
 |  STEP 3: Plan test file generation                        |
 |  - Group scenarios by feature / test category             |
-|  - Determine output file paths                            |
+|  - Determine output file paths (root tests/ directory)    |
 |  - Identify test categories per file:                     |
 |    CRUD | RLS | Constraints | Edge Cases                  |
 +----------------------------------------------------------+
@@ -171,10 +198,10 @@ Read: [found path] — feature context and business rules
 Glob: **/vitest.config.ts
 Read: [found path] — check clearMocks, resetMocks, restoreMocks
 
-Glob: **/test/setup.ts OR **/vitest.setup.ts
+Glob: tests/utils/** OR tests/setup.*
 Read: [check for existing Supabase test helpers]
 
-Glob: **/*.test.ts
+Glob: tests/**/*.test.ts
 [List existing test files to understand patterns]
 ```
 
@@ -188,7 +215,7 @@ If vitest.config.ts is missing `clearMocks: true`, `resetMocks: true`, `restoreM
 ### 2.5 Check for shared test utilities
 
 ```
-Glob: **/test-utils/** OR **/test/helpers/** OR **/test/setup.**
+Glob: tests/utils/supabase.ts
 Read: [check if Supabase test client helpers already exist]
 ```
 
@@ -198,7 +225,13 @@ If NO shared test utilities exist, the first agent will generate them.
 
 ## Step 3: Plan Test File Generation
 
-### 3.1 Parse test-plan.md
+### 3.1 Ensure tests directory exists
+
+```
+Bash: mkdir -p tests/utils tests/features tests/rls tests/constraints
+```
+
+### 3.2 Parse test-plan.md
 
 Extract test scenarios grouped by feature. For each feature, identify:
 - **CRUD tests** — insert, select, update, delete operations
@@ -206,18 +239,18 @@ Extract test scenarios grouped by feature. For each feature, identify:
 - **Constraint tests** — NOT NULL, UNIQUE, CHECK, FK violations
 - **Edge case tests** — empty inputs, boundaries, concurrent operations
 
-### 3.2 Determine output file paths
+### 3.3 Determine output file paths
 
-Map each feature/group to a test file:
+Map each feature/group to a test file in the root `tests/` directory:
 
 | Test Category | Output Path |
 |---------------|-------------|
-| Feature behavior | `src/features/{name}/api/{name}.test.ts` |
-| Shared test utils | `src/test-utils/supabase.ts` |
-| Supabase RLS (cross-feature) | `src/tests/rls/{table}.test.ts` |
-| Supabase constraints | `src/tests/constraints/{table}.test.ts` |
+| Feature behavior | `tests/features/{name}/{name}.test.ts` |
+| Shared test utils | `tests/utils/supabase.ts` |
+| Supabase RLS (cross-feature) | `tests/rls/{table}.test.ts` |
+| Supabase constraints | `tests/constraints/{table}.test.ts` |
 
-### 3.3 Filter by scope
+### 3.4 Filter by scope
 
 ```
 IF test_scope === "all"
@@ -233,13 +266,13 @@ IF test_scope === "crud"
   → Generate only CRUD test files
 ```
 
-### 3.4 Check if shared test utils need generation
+### 3.5 Check if shared test utils need generation
 
-If `src/test-utils/supabase.ts` does NOT exist, add it as the FIRST task:
+If `tests/utils/supabase.ts` does NOT exist, add it as the FIRST task:
 
 ```
 Task T0: Generate shared Supabase test utilities
-  Output: src/test-utils/supabase.ts
+  Output: tests/utils/supabase.ts
   Contents: adminClient, createAuthClient, createTestUser, deleteTestUser
 ```
 
@@ -251,14 +284,14 @@ All other tasks depend on T0 if it needs to be created.
 
 ### 4.1 Generate shared test utils first (if needed)
 
-If `src/test-utils/supabase.ts` does not exist, spawn this FIRST and wait:
+If `tests/utils/supabase.ts` does not exist, spawn this FIRST and wait:
 
 ```
 Task:
   subagent_type: qa-specialist
   description: "Generate shared Supabase test utilities"
   prompt: |
-    Create shared Supabase test utilities at src/test-utils/supabase.ts
+    Create shared Supabase test utilities at tests/utils/supabase.ts
 
     Read first:
     - references/vitest-best-practices.md (testing rules)
@@ -276,7 +309,7 @@ Task:
     Follow vitest-best-practices.md rules strictly.
     Do NOT create or alter any database tables.
 
-    When done, return: "COMPLETED: test-utils | File: src/test-utils/supabase.ts"
+    When done, return: "COMPLETED: test-utils | File: tests/utils/supabase.ts"
 ```
 
 **Wait for this to complete before spawning feature test agents.**
@@ -304,7 +337,7 @@ Task:
     3. Read: [path to backend-plan.md]
        Find the tables, RLS policies, and constraints for "{feature_name}".
 
-    4. Read: src/test-utils/supabase.ts
+    4. Read: tests/utils/supabase.ts
        Use the shared helpers: adminClient, createAuthClient, createTestUser, etc.
 
     5. Check existing code:
@@ -313,7 +346,10 @@ Task:
 
     === OUTPUT FILE ===
 
-    Write to: {output_path}
+    Write to: tests/features/{feature_name}/{feature_name}.test.ts
+
+    Ensure the directory exists first:
+    Bash: mkdir -p tests/features/{feature_name}
 
     === TEST CATEGORIES (generate ALL that apply) ===
 
@@ -348,7 +384,7 @@ Task:
 
     === RULES ===
 
-    - Import helpers from src/test-utils/supabase.ts
+    - Import helpers from tests/utils/supabase.ts (use relative path: ../../utils/supabase)
     - Use AAA pattern (Arrange, Act, Assert) with blank line separation
     - Use strict assertions: toEqual, toBe, toBeNull — NEVER toBeTruthy
     - Use it.each for parameterized RLS role tests
@@ -362,7 +398,7 @@ Task:
     === RESPONSE FORMAT ===
 
     When done, return:
-    "COMPLETED: {feature_name} | File: {output_path} | Tests: {count} | Categories: [CRUD, RLS, Constraints, EdgeCases]"
+    "COMPLETED: {feature_name} | File: tests/features/{feature_name}/{feature_name}.test.ts | Tests: {count} | Categories: [CRUD, RLS, Constraints, EdgeCases]"
 
     If blocked, return:
     "BLOCKED: {feature_name} — {reason}"
@@ -385,7 +421,7 @@ Parse each agent's response:
 ### 5.2 List generated files
 
 ```
-Glob: **/*.test.ts
+Glob: tests/**/*.test.ts
 [List all test files, including newly generated ones]
 ```
 
@@ -398,9 +434,9 @@ Glob: **/*.test.ts
 
 | Feature | File | Tests | Categories |
 |---------|------|-------|------------|
-| test-utils | src/test-utils/supabase.ts | — | Shared helpers |
-| {feature} | src/features/{name}/api/{name}.test.ts | {count} | CRUD, RLS, Constraints |
-| {feature} | src/tests/rls/{table}.test.ts | {count} | RLS |
+| test-utils | tests/utils/supabase.ts | — | Shared helpers |
+| {feature} | tests/features/{name}/{name}.test.ts | {count} | CRUD, RLS, Constraints |
+| {table} | tests/rls/{table}.test.ts | {count} | RLS |
 
 ### Summary
 
@@ -427,7 +463,10 @@ Glob: **/*.test.ts
 npx vitest run
 
 # Run specific feature tests
-npx vitest run src/features/{name}/api/{name}.test.ts
+npx vitest run tests/features/{name}/{name}.test.ts
+
+# Run all RLS tests
+npx vitest run tests/rls/
 
 # Run with coverage
 npx vitest run --coverage
@@ -514,6 +553,8 @@ export default defineConfig({
 - ALWAYS read test-plan.md before spawning agents
 - ALWAYS read references/vitest-best-practices.md and inject rules into agent prompts
 - ALWAYS generate shared test utils FIRST if they don't exist
+- ALWAYS create `tests/` directory structure before spawning agents
+- ALWAYS output test files to the root `tests/` directory (NOT inside `src/`)
 - ALWAYS spawn feature test agents in a SINGLE parallel message
 - ALWAYS use qa-specialist as the agent type
 - ALWAYS verify generated files exist after agents complete
@@ -521,6 +562,7 @@ export default defineConfig({
 - ALWAYS check for existing test infrastructure before generating
 
 ### DO NOT:
+- NEVER generate test files inside `src/` — all tests go in root `tests/`
 - NEVER generate UI component tests — this is behavior-only
 - NEVER use Playwright, Cypress, or browser testing agents
 - NEVER let agents create or alter database tables
@@ -538,9 +580,10 @@ export default defineConfig({
 - [ ] references/vitest-best-practices.md read
 - [ ] backend-plan.md read (if exists)
 - [ ] Existing test infrastructure checked (vitest.config, setup files, existing tests)
-- [ ] Test files planned with output paths
-- [ ] Shared test utils generated (if needed)
+- [ ] `tests/` directory structure created (utils, features, rls, constraints)
+- [ ] Test files planned with output paths in `tests/`
+- [ ] Shared test utils generated at `tests/utils/supabase.ts` (if needed)
 - [ ] ALL feature test agents spawned in parallel
 - [ ] Agent results collected
-- [ ] Generated files verified
+- [ ] Generated files verified in `tests/`
 - [ ] Results reported with run commands

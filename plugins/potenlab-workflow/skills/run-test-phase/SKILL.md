@@ -45,8 +45,9 @@ Do NOT use when:
 +----------------------------------------------------------+
 |  STEP 3: Resolve test files for the chosen phase          |
 |  - Map phase → features → test files                      |
-|  - src/features/{name}/**/*.test.ts                       |
-|  - src/tests/**/{name}*.test.ts                           |
+|  - tests/features/{name}/**/*.test.ts                     |
+|  - tests/rls/{name}*.test.ts                              |
+|  - tests/constraints/{name}*.test.ts                      |
 |  - supabase/**/{name}*.test.ts                            |
 +----------------------------------------------------------+
       |
@@ -152,10 +153,9 @@ Phase 2: Orders → features: [orders, payments, invoices]
 For each feature in the phase, search for test files:
 
 ```
-Glob: src/features/{feature}/**/*.test.ts
-Glob: src/tests/**/{feature}*.test.ts
-Glob: src/tests/rls/{feature}*.test.ts
-Glob: src/tests/constraints/{feature}*.test.ts
+Glob: tests/features/{feature}/**/*.test.ts
+Glob: tests/rls/{feature}*.test.ts
+Glob: tests/constraints/{feature}*.test.ts
 Glob: supabase/**/{feature}*.test.ts
 ```
 
@@ -215,7 +215,7 @@ npx vitest run {file1} {file2} {file3} --reporter=json --reporter=default --outp
 If the file list is very long (>10 files), use a glob pattern instead:
 
 ```bash
-npx vitest run "src/features/{feature1}/**/*.test.ts" "src/features/{feature2}/**/*.test.ts" --reporter=json --reporter=default --outputFile=docs/vitest-raw-output.json 2>&1
+npx vitest run "tests/features/{feature1}/**/*.test.ts" "tests/features/{feature2}/**/*.test.ts" --reporter=json --reporter=default --outputFile=docs/vitest-raw-output.json 2>&1
 ```
 
 ### 4.3 If vitest is not installed
@@ -277,7 +277,7 @@ Read: docs/vitest-raw-output.json
   },
   "suites": [
     {
-      "file": "src/features/auth/api/auth.test.ts",
+      "file": "tests/features/auth/auth.test.ts",
       "feature": "auth",
       "status": "fail",
       "duration_ms": 1234,
@@ -301,7 +301,7 @@ Read: docs/vitest-raw-output.json
       ]
     },
     {
-      "file": "src/features/auth/api/auth-rls.test.ts",
+      "file": "tests/features/auth/auth-rls.test.ts",
       "feature": "auth",
       "status": "pass",
       "duration_ms": 890,
@@ -314,7 +314,7 @@ Read: docs/vitest-raw-output.json
       "failures": []
     },
     {
-      "file": "src/features/profiles/api/profiles.test.ts",
+      "file": "tests/features/profiles/profiles.test.ts",
       "feature": "profiles",
       "status": "pass",
       "duration_ms": 678,

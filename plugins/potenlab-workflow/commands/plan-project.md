@@ -1,6 +1,6 @@
 ---
 name: potenlab:plan-project
-description: Orchestrate project planning with specialist agents
+description: Orchestrate project planning with specialist agents (includes test plan generation)
 allowed-tools:
   - Read
   - Write
@@ -14,7 +14,7 @@ allowed-tools:
 ---
 
 <objective>
-Orchestrate a complete project planning workflow with sequential agent handoff and parallel specialist execution. Creates all plan files from a PRD.
+Orchestrate a complete project planning workflow with sequential agent handoff and parallel specialist execution. Creates all plan files from a PRD, including test-plan.md for downstream test generation.
 </objective>
 
 <execution_context>
@@ -68,7 +68,14 @@ Read and apply rules from @{{POTENLAB_HOME}}/CLAUDE.md before proceeding.
   |
   v
 +----------------------------------------------------------+
-|  STEP 6: Report completion with file summary              |
+|  STEP 6: Spawn potenlab-qa-specialist (SEQUENTIAL)       |
+|  - Reads: docs/dev-plan.md + docs/backend-plan.md        |
+|  - Writes: docs/test-plan.md                             |
++----------------------------------------------------------+
+  |
+  v
++----------------------------------------------------------+
+|  STEP 7: Report completion with file summary              |
 +----------------------------------------------------------+
 ```
 
@@ -318,7 +325,88 @@ Task 2: potenlab-backend-specialist
 
 ---
 
-## Step 6: Report Completion
+## Step 6: Spawn potenlab-qa-specialist (SEQUENTIAL) — Generate Test Plan
+
+**This agent reads dev-plan.md and backend-plan.md to create a comprehensive test plan that maps every feature to testable scenarios. This test-plan.md is later consumed by `/potenlab:generate-test`.**
+
+```
+Task:
+  subagent_type: potenlab-qa-specialist
+  description: "Create test plan"
+  prompt: |
+    You are generating a TEST PLAN document — NOT test code.
+
+    Read these files first (MANDATORY):
+    - docs/dev-plan.md (single source of truth — all phases and tasks)
+    - docs/backend-plan.md (schema, RLS policies, constraints, queries)
+
+    Also read if available:
+    - docs/frontend-plan.md (component specs, data fetching patterns)
+
+    Create docs/test-plan.md with the following structure:
+
+    # Test Plan
+
+    ## Overview
+    - Project name and description (from dev-plan.md)
+    - Testing approach: behavior-driven, Vitest + Supabase local
+    - No UI/browser testing — database behavior only
+
+    ## Test Infrastructure
+    - Vitest configuration requirements
+    - Supabase local setup (http://127.0.0.1:54321)
+    - Shared test utilities needed (admin client, auth helpers)
+    - Environment variables (SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY)
+
+    ## Phase-by-Phase Test Scenarios
+
+    For EACH phase in dev-plan.md that has backend/data tasks:
+
+    ### Phase {N}: {name}
+
+    #### {feature_name}
+    - Tables involved: (from backend-plan.md)
+    - RLS policies: (list each policy)
+    - Test file: tests/features/{name}/{name}.test.ts
+
+    CRUD Tests:
+    - [ ] Create with valid data → verify inserted
+    - [ ] Create with missing required fields → expect error
+    - [ ] Read own data → verify returned
+    - [ ] Update own data → verify changed
+    - [ ] Delete own data → verify removed
+
+    RLS Policy Tests:
+    - [ ] Owner can SELECT own rows
+    - [ ] Other user CANNOT SELECT owner's rows
+    - [ ] Owner can INSERT with own user_id
+    - [ ] (map ALL policies from backend-plan.md)
+
+    Constraint Tests:
+    - [ ] NOT NULL violations for each required column
+    - [ ] UNIQUE constraint violations
+    - [ ] CHECK / FK constraint violations
+
+    Edge Cases:
+    - [ ] Empty string inputs, boundary values
+
+    ## Test Priority Matrix
+    ## Summary (total features, scenarios, estimated test files)
+
+    IMPORTANT:
+    - This is a PLAN document, not test code. Write markdown, not TypeScript.
+    - Map every RLS policy from backend-plan.md to specific test scenarios.
+    - Skip purely frontend tasks (CSS, layout, design tokens).
+
+    Write the file to: docs/test-plan.md
+    Write the file using the Write tool. Return "Done: docs/test-plan.md" when complete.
+```
+
+**Wait for this agent to complete before proceeding to Step 7.**
+
+---
+
+## Step 7: Report Completion
 
 After all agents have completed, provide a summary:
 
@@ -333,12 +421,14 @@ After all agents have completed, provide a summary:
 | 2 | docs/dev-plan.md | potenlab-tech-lead-specialist | Single source of truth — phased development checklist |
 | 3 | docs/frontend-plan.md | potenlab-frontend-specialist | Component specs, file paths, props, patterns |
 | 4 | docs/backend-plan.md | potenlab-backend-specialist | Schema, migrations, RLS policies, queries |
+| 5 | docs/test-plan.md | potenlab-qa-specialist | Test scenarios mapped to features, RLS, constraints |
 
 ### Next Steps
 
 1. Review `docs/dev-plan.md` for the full task breakdown
-2. Review `docs/frontend-plan.md` and `docs/backend-plan.md` for implementation details
+2. Review `docs/test-plan.md` for test coverage mapping
 3. Use `/potenlab:complete-plan` to generate progress.json
+4. Use `/potenlab:generate-test` to generate .test.ts files from test-plan.md
 ```
 
 ---
@@ -352,11 +442,25 @@ After all agents have completed, provide a summary:
 3. Do NOT proceed without a valid PRD or project description
 ```
 
-### Agent Fails
+### Agent Fails (ui-ux or tech-lead)
 ```
 1. Report which agent failed
 2. Do NOT proceed to downstream agents
 3. Ask user to fix the issue and re-run
+```
+
+### frontend or backend Specialist Fails
+```
+1. Report which specialist failed
+2. The other specialist's output is still valid
+3. Proceed to qa-specialist (it only requires dev-plan.md; backend-plan.md is enrichment)
+```
+
+### qa-specialist Fails
+```
+1. Report the error
+2. All other plan files are still valid — proceed to report
+3. User can re-run qa-specialist later or create test-plan.md manually
 ```
 
 ---
@@ -367,20 +471,16 @@ After all agents have completed, provide a summary:
 
 ```
 CORRECT:
-  potenlab-ui-ux-specialist   ──Write──> docs/ui-ux-plan.md
+  potenlab-ui-ux-specialist     ──Write──> docs/ui-ux-plan.md
   potenlab-tech-lead-specialist ──Read───> docs/ui-ux-plan.md
   potenlab-tech-lead-specialist ──Write──> docs/dev-plan.md
-  frontend/backend             ──Read───> docs/dev-plan.md
+  frontend/backend              ──Read───> docs/dev-plan.md
+  potenlab-qa-specialist        ──Read───> docs/dev-plan.md + docs/backend-plan.md
+  potenlab-qa-specialist        ──Write──> docs/test-plan.md
 
 WRONG:
   Agent A returns content → passed in Agent B prompt
 ```
-
-**Rules:**
-1. Each agent WRITES their plan to `docs/*.md` using the Write tool
-2. Downstream agents READ those files using the Read tool
-3. Prompts contain only file PATHS, never file CONTENT
-4. Agents are independent — no content passed between them in prompts
 
 ---
 
@@ -392,6 +492,7 @@ WRONG:
 - ALWAYS wait for ui-ux-plan.md before spawning potenlab-tech-lead-specialist
 - ALWAYS wait for dev-plan.md before spawning frontend + backend
 - ALWAYS spawn frontend + backend in PARALLEL (single message, two Task calls)
+- ALWAYS wait for backend-plan.md before spawning potenlab-qa-specialist
 - ALWAYS verify output files exist after each agent completes
 - ALWAYS ensure docs/ directory exists before any agent runs
 
@@ -399,8 +500,9 @@ WRONG:
 - NEVER skip AskUserQuestion — user validation is mandatory
 - NEVER spawn potenlab-tech-lead-specialist before potenlab-ui-ux-specialist completes
 - NEVER spawn frontend/backend before tech-lead completes
+- NEVER spawn potenlab-qa-specialist before frontend/backend complete
 - NEVER pass file content in agent prompts — use file paths only
-- NEVER proceed if an agent fails — report and stop
+- NEVER proceed if a critical agent fails (ui-ux, tech-lead) — report and stop
 - NEVER ask more than 5 questions total
 
 </process>
