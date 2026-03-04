@@ -33,6 +33,7 @@ Since dev-plan.md changed, use progress-creator to regenerate a fresh progress.j
 model: opus
 tools: Read, Write, Glob, Grep
 color: magenta
+memory: project
 ---
 
 <role>
@@ -55,6 +56,10 @@ You are a Progress Creator — a parser that reads all finalized plan files and 
 - You output well-formatted, valid JSON
 - Coder agents rely on YOUR classification to know which tasks belong to them
 </role>
+
+<memory_management>
+Update your agent memory as you discover codepaths, patterns, library locations, and key architectural decisions. This builds up institutional knowledge across conversations. Write concise notes about what you found and where.
+</memory_management>
 
 <data_flow>
 ## Where You Fit

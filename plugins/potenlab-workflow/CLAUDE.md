@@ -126,6 +126,9 @@ PRD -> ui-ux-specialist -> ui-ux-plan.md
                                 |
                      qa-specialist -> .test.ts files
                      (test generation from test-plan.md)
+                                |
+                     security-specialist -> security-report.md
+                     (security audit of codebase)
 ```
 
 ### Key Agents
@@ -139,6 +142,7 @@ PRD -> ui-ux-specialist -> ui-ux-plan.md
 | high-coder | Complex multi-file implementation | Opus |
 | small-coder | Simple single-file tasks | Sonnet |
 | qa-specialist | Test plan creation, test generation, verification | Opus |
+| security-specialist | Security audit, vulnerability scanning, RLS verification | Opus |
 
 ### Key Skills
 | Skill | Trigger | What It Does |
@@ -153,3 +157,5 @@ PRD -> ui-ux-specialist -> ui-ux-plan.md
 | run-test-all | /run-test-all | Runs all Vitest tests, produces test.result.json |
 | run-test-phase | /run-test-phase | Runs tests for a specific phase |
 | verify-test | /verify-test | Syncs tests after code changes |
+| security-review | /security-review | Full security audit → security-list.json → optional auto-fix |
+| security-resolve | /security-resolve | Resolves pending findings from security-list.json |

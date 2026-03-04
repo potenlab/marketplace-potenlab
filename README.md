@@ -34,7 +34,7 @@ Expected output:
 
 ```
 ~/.claude/
-├── commands/potenlab/          # 11 slash commands
+├── commands/potenlab/          # 13 slash commands
 │   ├── plan-project.md
 │   ├── execute-phase.md
 │   ├── developer.md
@@ -44,9 +44,11 @@ Expected output:
 │   ├── run-test-all.md
 │   ├── run-test-phase.md
 │   ├── verify-test.md
+│   ├── security-review.md
+│   ├── security-resolve.md
 │   ├── info.md
 │   └── hello.md
-├── agents/                     # 8 specialist agents (potenlab-prefixed)
+├── agents/                     # 9 specialist agents (potenlab-prefixed, project memory enabled)
 │   ├── potenlab-ui-ux-specialist.md
 │   ├── potenlab-tech-lead-specialist.md
 │   ├── potenlab-frontend-specialist.md
@@ -54,7 +56,8 @@ Expected output:
 │   ├── potenlab-progress-creator.md
 │   ├── potenlab-high-coder.md
 │   ├── potenlab-small-coder.md
-│   └── potenlab-qa-specialist.md
+│   ├── potenlab-qa-specialist.md
+│   └── potenlab-security-specialist.md
 └── potenlab-workflow/          # Core data
     ├── VERSION
     ├── CLAUDE.md
@@ -83,9 +86,13 @@ Expected output:
       |                            Phase 5: Polish
       v
   /potenlab:developer          4. Post-completion adjustments
+      |
+      v
+  /potenlab:security-review    5. Security audit + optional auto-fix
 ```
 
 Need to revise plans? Use `/potenlab:review-plan` at any point.
+Need to fix security issues later? Use `/potenlab:security-resolve`.
 
 ### Step 1: Plan — `/potenlab:plan-project`
 
@@ -161,6 +168,17 @@ Edit existing plans based on feedback. Same agent flow as planning but in edit m
 /potenlab:verify-test            # Sync tests after code changes
 ```
 
+### Security
+
+```
+/potenlab:security-review        # Full security audit → security-list.json → optional auto-fix
+/potenlab:security-resolve       # Resolve pending findings from security-list.json
+```
+
+**`/potenlab:security-review`** scans the entire codebase for vulnerabilities across OWASP Top 10 categories, Supabase RLS issues, secret exposure, and more. Produces `security-report.md` and `security-list.json`, then asks if you want to auto-fix. Fixes are applied by `potenlab-high-coder` with strict constraints — security-only, no feature changes.
+
+**`/potenlab:security-resolve`** picks up where you left off. Reads `security-list.json`, shows pending findings, and spawns coder agents to fix them.
+
 ## Commands Reference
 
 | Command | Purpose | Input |
@@ -174,6 +192,8 @@ Edit existing plans based on feedback. Same agent flow as planning but in edit m
 | `/potenlab:run-test-all` | Run all tests | None |
 | `/potenlab:run-test-phase` | Run tests for a phase | Phase number |
 | `/potenlab:verify-test` | Sync tests after changes | Scope (optional) |
+| `/potenlab:security-review` | Full security audit + optional auto-fix | None |
+| `/potenlab:security-resolve` | Fix pending security findings | None (reads security-list.json) |
 | `/potenlab:info` | Show overview | None |
 | `/potenlab:hello` | Verify installation | None |
 
@@ -189,6 +209,9 @@ Edit existing plans based on feedback. Same agent flow as planning but in edit m
 | `potenlab-high-coder` | Opus | Execute complex multi-file tasks (3+ files) |
 | `potenlab-small-coder` | Sonnet | Execute small isolated tasks (1-2 files, fast) |
 | `potenlab-qa-specialist` | Opus | Test generation, verification, failure analysis |
+| `potenlab-security-specialist` | Opus | Security audit, vulnerability scanning, RLS verification |
+
+All agents have **project-scoped persistent memory** (`memory: project`). They build institutional knowledge about your codebase across conversations — codepaths, patterns, library locations, and architectural decisions are remembered and reused.
 
 ## Generated Files
 
@@ -199,7 +222,9 @@ docs/
 ├── frontend-plan.md      # Component specs, file paths, props, patterns
 ├── backend-plan.md       # Schema, SQL migrations, RLS policies
 ├── progress.json         # Task tracker with complexity + agent assignments
-└── changes.json          # Post-completion change tracking (batched)
+├── changes.json          # Post-completion change tracking (batched)
+├── security-report.md    # Detailed security audit findings
+└── security-list.json    # Structured security findings for resolution tracking
 ```
 
 ## Project Structure
@@ -259,8 +284,8 @@ These enhance agent capabilities but are not required:
 | MCP Server | Used By | Purpose |
 |------------|---------|---------|
 | `shadcn` | potenlab-frontend-specialist, potenlab-ui-ux-specialist | Component discovery |
-| `context7` | potenlab-frontend-specialist, potenlab-backend-specialist | Library documentation |
-| `postgres` | potenlab-backend-specialist | Database state inspection |
+| `context7` | potenlab-frontend-specialist, potenlab-backend-specialist, potenlab-security-specialist | Library documentation |
+| `postgres` | potenlab-backend-specialist, potenlab-security-specialist | Database state inspection |
 
 ## License
 

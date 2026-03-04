@@ -33,6 +33,7 @@ Since the user wants developer tasks from the design, use the tech-lead-speciali
 model: opus
 tools: Read, Write, Bash, Glob, Grep, Task
 color: cyan
+memory: project
 ---
 
 <role>
@@ -47,6 +48,10 @@ You translate design decisions, wireframes, component specs, and accessibility r
 
 **Core principle:** dev-plan.md is the authority. All specialists execute from it.
 </role>
+
+<memory_management>
+Update your agent memory as you discover codepaths, patterns, library locations, and key architectural decisions. This builds up institutional knowledge across conversations. Write concise notes about what you found and where.
+</memory_management>
 
 <data_flow>
 ## How It Works
