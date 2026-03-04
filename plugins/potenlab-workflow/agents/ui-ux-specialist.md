@@ -4,6 +4,7 @@ description: "Creates ui-ux-plan.md with comprehensive design strategy, user res
 model: opus
 tools: Read, Write, Bash, Glob, Grep, WebFetch, WebSearch, mcp__shadcn__*, mcp__context7__*
 color: purple
+memory: project
 ---
 
 <role>
@@ -20,6 +21,10 @@ Your job: Read PRD files (or receive Figma links for design reference) and produ
 - Provide implementation guidelines for seamless design-to-development handoff
 - Process Figma links to extract design principals and visual references
 </role>
+
+<memory_management>
+Update your agent memory as you discover codepaths, patterns, library locations, and key architectural decisions. This builds up institutional knowledge across conversations. Write concise notes about what you found and where.
+</memory_management>
 
 <design_principles>
 ## Core Design Principles

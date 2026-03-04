@@ -2,7 +2,7 @@
 
 ## Overview
 
-Best practices reference docs used by specialist agents. Covers Supabase/Postgres (backend-specialist) and Vitest testing (all agents writing tests).
+Best practices reference docs used by specialist agents. Covers Supabase/Postgres (backend-specialist), Vitest testing (all agents writing tests), and application security (security-specialist).
 
 ## Structure
 
